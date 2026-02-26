@@ -1,0 +1,22 @@
+{
+  "name": "izincatat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Izin Catat — Monorepo pencatatan keuangan pribadi",
+  "scripts": {
+    "bot:start": "cd bot && npm start",
+    "bot:dev": "cd bot && npm run dev",
+    "web:dev": "cd web && npm run dev",
+    "web:build": "cd web && npm run build",
+    "db:generate": "cd bot && npm run db:generate",
+    "db:push": "cd bot && npm run db:push",
+    "db:migrate": "cd bot && npm run db:migrate",
+    "db:studio": "cd bot && npm run db:studio"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.2"
+  }
+}

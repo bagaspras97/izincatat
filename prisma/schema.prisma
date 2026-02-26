@@ -1,0 +1,40 @@
+// Prisma Schema — Izin Catat
+// Bot pencatatan keuangan pribadi WhatsApp
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Tabel users — menyimpan data pengguna WhatsApp
+model User {
+  id        Int         @id @default(autoincrement())
+  nomorWa   String      @unique @map("nomor_wa")
+  nama      String?
+  createdAt DateTime    @default(now()) @map("created_at")
+  isActive  Boolean     @default(true) @map("is_active")
+  transaksi Transaksi[]
+
+  @@map("users")
+}
+
+/// Tabel transaksi — menyimpan catatan pemasukan & pengeluaran
+model Transaksi {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  jenis      String   // "masuk" atau "keluar"
+  nominal    Decimal  @db.Decimal(15, 2)
+  keterangan String
+  kategori   String
+  tanggal    DateTime @default(now())
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tanggal])
+  @@map("transaksi")
+}

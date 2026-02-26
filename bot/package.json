@@ -1,0 +1,39 @@
+{
+  "name": "izincatat-bot",
+  "version": "1.0.0",
+  "description": "Izin Catat — Bot pencatatan keuangan pribadi berbasis WhatsApp",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "db:generate": "npx prisma generate --schema ../prisma/schema.prisma",
+    "db:push": "npx prisma db push --schema ../prisma/schema.prisma",
+    "db:migrate": "npx prisma migrate dev --schema ../prisma/schema.prisma",
+    "db:studio": "npx prisma studio --schema ../prisma/schema.prisma"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "keuangan",
+    "pencatatan"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.65",
+    "@prisma/client": "^6.3.0",
+    "@whiskeysockets/baileys": "^6.7.16",
+    "chart.js": "^4.4.7",
+    "dotenv": "^16.4.7",
+    "groq-sdk": "^0.37.0",
+    "node-cron": "^3.0.3",
+    "pino": "^9.6.0",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -39,13 +39,15 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile toggle */}
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-xl bg-bg-card border border-border-card lg:hidden"
-      >
-        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
+      {/* Hamburger — hanya muncul saat sidebar tertutup di mobile */}
+      {!mobileOpen && (
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="fixed top-4 left-4 z-50 p-2 rounded-xl bg-bg-card border border-border-card lg:hidden"
+        >
+          <Menu size={20} />
+        </button>
+      )}
 
       {/* Overlay mobile */}
       {mobileOpen && (
@@ -59,12 +61,20 @@ export default function Sidebar() {
       <aside
         className={`
           fixed top-0 left-0 h-screen w-[72px] bg-bg-card border-r border-border-card
-          flex flex-col items-center py-6 gap-2 z-40
+          flex flex-col items-center py-4 gap-2 z-40
           transition-transform duration-200
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
         `}
       >
+        {/* Tombol close — hanya di mobile, di dalam sidebar */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="w-11 h-11 rounded-xl flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-bg-card-hover transition-all lg:hidden mb-2"
+        >
+          <X size={20} />
+        </button>
+
         {/* Nav items */}
         <nav className="flex flex-col gap-1 flex-1">
           {navItems.map((item) => {
@@ -85,8 +95,9 @@ export default function Sidebar() {
                 `}
               >
                 <Icon size={20} />
-                {/* Tooltip */}
+                {/* Tooltip — hanya desktop */}
                 <span className="
+                  hidden lg:block
                   absolute left-full ml-3 px-2.5 py-1 rounded-lg text-xs font-medium
                   bg-bg-card border border-border-card text-text-primary
                   opacity-0 group-hover:opacity-100 pointer-events-none

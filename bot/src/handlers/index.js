@@ -10,6 +10,7 @@ const { handleSaldo } = require('./saldo');
 const { handleLaporan } = require('./laporan');
 const { handleRiwayat } = require('./riwayat');
 const { pesanBantuan, pesanTidakDikenali, pesanErrorUmum } = require('../utils/pesan');
+const { normalisasiAngkaKata } = require('../utils/validator');
 
 /**
  * State management untuk percakapan multi-step (mis. konfirmasi hapus).
@@ -45,12 +46,13 @@ async function handleMessage(sock, sender, pesan, pushName) {
     // Tidak perlu proses pesan lebih lanjut
     if (isNew) return;
 
-    // Normalisasi pesan
-    const pesanLower = pesan.trim().toLowerCase();
+    // Normalisasi pesan — konversi kata angka ke digit (mis. "hapus dua" → "hapus 2")
+    const pesanNormal = normalisasiAngkaKata(pesan.trim());
+    const pesanLower = pesanNormal.toLowerCase();
 
     // 2. Cek apakah user dalam state percakapan multi-step
     if (userStates.has(sender)) {
-      const handled = await handleKonfirmasiHapus(sock, sender, pesan, user, userStates); // NOSONAR
+      const handled = await handleKonfirmasiHapus(sock, sender, pesanNormal, user, userStates); // NOSONAR
       if (handled) return;
     }
 
@@ -58,13 +60,13 @@ async function handleMessage(sock, sender, pesan, pushName) {
 
     // Command: catat keluar/masuk
     if (pesanLower.startsWith('catat ')) {
-      await handleCatat(sock, sender, pesan, user);
+      await handleCatat(sock, sender, pesanNormal, user);
       return;
     }
 
     // Command: bayar (shortcut untuk catat keluar)
     if (pesanLower.startsWith('bayar')) {
-      await handleBayar(sock, sender, pesan, user);
+      await handleBayar(sock, sender, pesanNormal, user);
       return;
     }
 
@@ -76,7 +78,7 @@ async function handleMessage(sock, sender, pesan, pushName) {
 
     // Command: laporan hari/minggu/bulan
     if (pesanLower.startsWith('laporan')) {
-      await handleLaporan(sock, sender, pesan, user);
+      await handleLaporan(sock, sender, pesanNormal, user);
       return;
     }
 
@@ -88,7 +90,7 @@ async function handleMessage(sock, sender, pesan, pushName) {
 
     // Command: hapus [id]
     if (pesanLower.startsWith('hapus ')) {
-      await handleHapus(sock, sender, pesan, user, userStates);
+      await handleHapus(sock, sender, pesanNormal, user, userStates);
       return;
     }
 

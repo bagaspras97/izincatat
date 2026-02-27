@@ -250,4 +250,143 @@ module.exports = {
   validasiJenis,
   parseCatat,
   validasiIdTransaksi,
+  normalisasiAngkaKata,
 };
+
+/**
+ * Konversi urutan kata angka Indonesia menjadi digit dalam sebuah teks.
+ * Mendukung angka hingga ratusan juta — cocok untuk nominal dan ID transaksi.
+ * Contoh: "hapus dua" → "hapus 2"
+ *         "catat keluar dua puluh lima ribu makan siang" → "catat keluar 25000 makan siang"
+ * @param {string} text
+ * @returns {string}
+ */
+function normalisasiAngkaKata(text) {
+  const DIGIT = {
+    nol: 0, satu: 1, dua: 2, tiga: 3, empat: 4,
+    lima: 5, enam: 6, tujuh: 7, delapan: 8, sembilan: 9,
+  };
+
+  const VALID_STARTS = new Set([
+    ...Object.keys(DIGIT),
+    'sepuluh', 'sebelas', 'seratus', 'seribu', 'sejuta', 'se',
+  ]);
+
+  const toks = text.toLowerCase().split(/\s+/);
+  const out = [];
+  let i = 0;
+
+  while (i < toks.length) {
+    const parsed = parseNumber(toks, i);
+    if (parsed) {
+      out.push(parsed.value.toString());
+      i += parsed.consumed;
+    } else {
+      out.push(toks[i]);
+      i++;
+    }
+  }
+
+  return out.join(' ');
+
+  // ── Helper parsers ───────────────────────────────────────────
+
+  function dg(tok) { return tok != null ? (DIGIT[tok.toLowerCase()] ?? null) : null; }
+
+  /** Parse 1–99 */
+  function parseBawahRatus(toks, i) {
+    const t0 = toks[i]?.toLowerCase();
+    const t1 = toks[i + 1]?.toLowerCase();
+    const t2 = toks[i + 2]?.toLowerCase();
+    if (!t0) return null;
+
+    if (t0 === 'sepuluh') return { value: 10, consumed: 1 };
+    if (t0 === 'sebelas') return { value: 11, consumed: 1 };
+
+    const d0 = dg(t0);
+    if (d0 === null) return null;
+
+    if (t1 === 'belas' && d0 >= 2) return { value: 10 + d0, consumed: 2 };
+    if (t1 === 'puluh') {
+      const d2 = dg(t2);
+      if (d2 !== null && d2 >= 1) return { value: d0 * 10 + d2, consumed: 3 };
+      return { value: d0 * 10, consumed: 2 };
+    }
+    return { value: d0, consumed: 1 };
+  }
+
+  /** Parse 1–999 */
+  function parseBawahRibu(toks, i) {
+    const t0 = toks[i]?.toLowerCase();
+    const t1 = toks[i + 1]?.toLowerCase();
+    let ratusan = 0;
+    let hConsumed = 0;
+
+    if (t0 === 'seratus') {
+      ratusan = 100; hConsumed = 1;
+    } else if (t0 === 'se' && t1 === 'ratus') {
+      ratusan = 100; hConsumed = 2;
+    } else {
+      const d0 = dg(t0);
+      if (d0 !== null && d0 >= 1 && t1 === 'ratus') {
+        ratusan = d0 * 100; hConsumed = 2;
+      }
+    }
+
+    const rest = parseBawahRatus(toks, i + hConsumed);
+    if (rest) return { value: ratusan + rest.value, consumed: hConsumed + rest.consumed };
+    if (hConsumed > 0) return { value: ratusan, consumed: hConsumed };
+
+    return parseBawahRatus(toks, i);
+  }
+
+  /** Parse angka penuh (1–ratusan juta) */
+  function parseNumber(toks, i) {
+    const t0 = toks[i]?.toLowerCase();
+    if (!t0 || !VALID_STARTS.has(t0)) return null;
+
+    let value = 0;
+    let pos = i;
+
+    // ── Juta ─────────────────────────────────────────────────
+    if (t0 === 'sejuta') {
+      value += 1_000_000;
+      pos++;
+    } else {
+      const sub = parseBawahRibu(toks, pos);
+      if (sub && toks[pos + sub.consumed]?.toLowerCase() === 'juta') {
+        value += sub.value * 1_000_000;
+        pos += sub.consumed + 1;
+      }
+    }
+
+    // ── Ribu ─────────────────────────────────────────────────
+    const tRibu = toks[pos]?.toLowerCase();
+    if (tRibu === 'seribu') {
+      value += 1_000;
+      pos++;
+    } else if (tRibu && VALID_STARTS.has(tRibu)) {
+      const sub = parseBawahRibu(toks, pos);
+      if (sub && toks[pos + sub.consumed]?.toLowerCase() === 'ribu') {
+        value += sub.value * 1_000;
+        pos += sub.consumed + 1;
+      }
+    }
+
+    // ── Sisa di bawah 1000 ───────────────────────────────────
+    const tRem = toks[pos]?.toLowerCase();
+    if (tRem && VALID_STARTS.has(tRem)) {
+      const sub = parseBawahRibu(toks, pos);
+      if (sub) { value += sub.value; pos += sub.consumed; }
+    }
+
+    // Jika tidak ada magnitude (juta/ribu), parse sebagai angka biasa
+    if (pos === i) {
+      const plain = parseBawahRibu(toks, i);
+      if (plain) return plain;
+      return null;
+    }
+
+    return { value, consumed: pos - i };
+  }
+}

@@ -52,8 +52,12 @@ async function handleCatat(sock, sender, pesan, user) {
     // Ambil saldo hari ini untuk ditampilkan
     const saldoHariIni = await getSaldoHariIni(user.id); // NOSONAR
 
+    // Buat link ke website
+    const webBase = process.env.WEB_URL;
+    const webUrl = webBase ? `${webBase}/${user.publicId}/transaksi` : null;
+
     // Kirim konfirmasi
-    const pesan_konfirmasi = pesanTransaksiBerhasil(transaksi, saldoHariIni);
+    const pesan_konfirmasi = pesanTransaksiBerhasil(transaksi, saldoHariIni, webUrl);
     await sock.sendMessage(sender, { text: pesan_konfirmasi });
   } catch (error) {
     console.error('Error handleCatat:', error);

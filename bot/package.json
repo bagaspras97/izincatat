@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
+    "postinstall": "npx prisma generate --schema ../prisma/schema.prisma",
     "db:generate": "npx prisma generate --schema ../prisma/schema.prisma",
     "db:push": "npx prisma db push --schema ../prisma/schema.prisma",
     "db:migrate": "npx prisma migrate dev --schema ../prisma/schema.prisma",

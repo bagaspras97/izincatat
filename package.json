@@ -17,6 +17,7 @@
     "prisma": "^6.19.2"
   },
   "dependencies": {
+    "@paralleldrive/cuid2": "^3.3.0",
     "@prisma/client": "^6.19.2"
   }
 }

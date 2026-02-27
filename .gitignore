@@ -7,8 +7,7 @@ node_modules/
 # Baileys auth session
 bot/auth_info_baileys/
 
-# Prisma
-prisma/migrations/
+# Prisma (migrations harus di-commit untuk deploy production)
 
 # OS files
 .DS_Store

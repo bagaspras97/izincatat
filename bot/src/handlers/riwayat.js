@@ -18,9 +18,13 @@ async function handleRiwayat(sock, sender, user) {
     // Ambil 10 transaksi terakhir
     const { transaksi, total } = await getRiwayat(user.id, 10); // NOSONAR
 
+    // Buat link ke website
+    const webBase = process.env.WEB_URL;
+    const webUrl = webBase ? `${webBase}/${user.publicId}/transaksi` : null;
+
     // Format dan kirim pesan
     await sock.sendMessage(sender, {
-      text: pesanRiwayat(transaksi, total),
+      text: pesanRiwayat(transaksi, total, webUrl),
     });
   } catch (error) {
     console.error('Error handleRiwayat:', error);

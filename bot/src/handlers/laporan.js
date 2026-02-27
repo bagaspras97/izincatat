@@ -40,9 +40,13 @@ async function handleLaporan(sock, sender, pesan, user) {
     // Ambil data laporan dari database
     const data = await getLaporan(user.id, periode); // NOSONAR
 
+    // Buat link ke website
+    const webBase = process.env.WEB_URL;
+    const webUrl = webBase ? `${webBase}/${user.publicId}/laporan` : null;
+
     // Kirim teks laporan
     await sock.sendMessage(sender, {
-      text: pesanLaporan(data),
+      text: pesanLaporan(data, webUrl),
     });
   } catch (error) {
     console.error('Error handleLaporan:', error);

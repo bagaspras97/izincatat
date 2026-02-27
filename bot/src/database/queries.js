@@ -6,6 +6,7 @@
 
 const { prisma } = require('./prisma');
 const { encrypt, decrypt, decryptTransaksi, decryptTransaksiList } = require('../utils/crypto');
+const { createId } = require('@paralleldrive/cuid2');
 
 // ═══════════════════════════════════════════════
 //  USER QUERIES
@@ -35,9 +36,9 @@ async function getOrCreateUser(nomorWa, nama = null) {
       return { user, isNew: false };
     }
 
-    // Buat user baru
+    // Buat user baru dengan publicId CUID2
     user = await prisma.user.create({
-      data: { nomorWa, nama },
+      data: { nomorWa, nama, publicId: createId() },
     });
 
     console.log(`👤 User baru terdaftar: ${nama || nomorWa}`);
@@ -283,6 +284,101 @@ async function getRiwayat(userId, limit = 10) {
   return { transaksi: decryptTransaksiList(transaksiRaw), total };
 }
 
+// ═══════════════════════════════════════════════
+//  SCHEDULER QUERIES
+// ═══════════════════════════════════════════════
+
+/**
+ * Ambil semua user aktif (untuk scheduler).
+ * @returns {Array<{ id, nomorWa, nama, publicId }>}
+ */
+async function getActiveUsers() {
+  return prisma.user.findMany({
+    where: { isActive: true },
+    select: { id: true, nomorWa: true, nama: true, publicId: true },
+  });
+}
+
+/**
+ * Hitung jumlah transaksi user hari ini.
+ * @param {number} userId
+ * @returns {number}
+ */
+async function countTransaksiHariIni(userId) {
+  const now = new Date();
+  const mulai = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const selesai = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+  return prisma.transaksi.count({
+    where: { userId, tanggal: { gte: mulai, lt: selesai } },
+  });
+}
+
+/**
+ * Ambil data weekly digest: minggu lalu vs dua minggu lalu.
+ * Dirancang untuk dipanggil Senin pagi — "minggu lalu" = 7 hari sebelum hari ini.
+ * @param {number} userId
+ * @returns {{ mingguLalu: object, mingguSebelumnya: object }}
+ */
+async function getWeeklyDigestData(userId) {
+  const now = new Date();
+
+  // Minggu lalu: Senin lalu 00:00 → hari ini 00:00 (7 hari penuh)
+  const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const startLastWeek = new Date(endDate);
+  startLastWeek.setDate(startLastWeek.getDate() - 7);
+
+  // Dua minggu lalu (untuk perbandingan)
+  const startPrevWeek = new Date(startLastWeek);
+  startPrevWeek.setDate(startPrevWeek.getDate() - 7);
+
+  // Ambil semua data dua periode sekaligus
+  const [
+    masukMingguLalu,
+    keluarMingguLalu,
+    masukMingguSebelumnya,
+    keluarMingguSebelumnya,
+    jumlahTransaksiMingguLalu,
+    breakdownRaw,
+  ] = await Promise.all([
+    hitungTotal(userId, 'masuk', startLastWeek, endDate),
+    hitungTotal(userId, 'keluar', startLastWeek, endDate),
+    hitungTotal(userId, 'masuk', startPrevWeek, startLastWeek),
+    hitungTotal(userId, 'keluar', startPrevWeek, startLastWeek),
+    prisma.transaksi.count({
+      where: { userId, tanggal: { gte: startLastWeek, lt: endDate } },
+    }),
+    prisma.transaksi.groupBy({
+      by: ['kategori'],
+      where: { userId, jenis: 'keluar', tanggal: { gte: startLastWeek, lt: endDate } },
+      _sum: { nominal: true },
+      orderBy: { _sum: { nominal: 'desc' } },
+      take: 3,
+    }),
+  ]);
+
+  const topKategori = breakdownRaw.map((item) => ({
+    kategori: item.kategori,
+    total: Number.parseFloat(item._sum.nominal) || 0,
+  }));
+
+  return {
+    mingguLalu: {
+      mulai: startLastWeek,
+      selesai: endDate,
+      totalMasuk: masukMingguLalu,
+      totalKeluar: keluarMingguLalu,
+      saldo: masukMingguLalu - keluarMingguLalu,
+      jumlahTransaksi: jumlahTransaksiMingguLalu,
+      topKategori,
+    },
+    mingguSebelumnya: {
+      totalMasuk: masukMingguSebelumnya,
+      totalKeluar: keluarMingguSebelumnya,
+      saldo: masukMingguSebelumnya - keluarMingguSebelumnya,
+    },
+  };
+}
+
 module.exports = {
   getOrCreateUser,
   getUserByNomorWa,
@@ -293,4 +389,7 @@ module.exports = {
   getSaldoBulanIni,
   getLaporan,
   getRiwayat,
+  getActiveUsers,
+  countTransaksiHariIni,
+  getWeeklyDigestData,
 };

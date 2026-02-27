@@ -112,7 +112,8 @@ async function startBot() {
       console.log('📝 Siap menerima pesan...');
       console.log('');
 
-      // Setup scheduler setelah terhubung
+      // Stop scheduler lama (jika ada dari reconnect) lalu setup ulang dengan socket baru
+      stopScheduler();
       setupScheduler(sock);
     }
   });

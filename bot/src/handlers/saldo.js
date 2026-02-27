@@ -21,9 +21,13 @@ async function handleSaldo(sock, sender, user) {
       getSaldoBulanIni(user.id), // NOSONAR
     ]);
 
+    // Buat link ke website
+    const webBase = process.env.WEB_URL;
+    const webUrl = webBase ? `${webBase}/${user.publicId}/dashboard` : null;
+
     // Kirim pesan saldo
     await sock.sendMessage(sender, {
-      text: pesanSaldo(saldoHari, saldoBulan),
+      text: pesanSaldo(saldoHari, saldoBulan, webUrl),
     });
   } catch (error) {
     console.error('Error handleSaldo:', error);

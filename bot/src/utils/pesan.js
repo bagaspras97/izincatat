@@ -76,10 +76,14 @@ const pesanBantuan = () => {
 
 /**
  * Konfirmasi transaksi berhasil dicatat
+ * @param {object} transaksi
+ * @param {object} saldoHariIni
+ * @param {string|null} webUrl - URL website (mis. https://app.com/5/transaksi)
  */
-const pesanTransaksiBerhasil = (transaksi, saldoHariIni) => {
+const pesanTransaksiBerhasil = (transaksi, saldoHariIni, webUrl = null) => {
   const jenisLabel = transaksi.jenis === 'keluar' ? 'Pengeluaran' : 'Pemasukan';
   const tanda = transaksi.jenis === 'keluar' ? '-' : '+';
+  const linkWeb = webUrl ? `\n🌐 Lihat di web: ${webUrl}` : '';
 
   return (
     `✅ *Tercatat!*\n\n` +
@@ -93,7 +97,8 @@ const pesanTransaksiBerhasil = (transaksi, saldoHariIni) => {
     `Masuk  : ${formatRupiah(saldoHariIni.pemasukan)}\n` +
     `Keluar : ${formatRupiah(saldoHariIni.pengeluaran)}\n` +
     `Bersih : *${formatRupiah(saldoHariIni.saldo)}*\n\n` +
-    `_Salah catat? Ketik hapus #${transaksi.id}_`
+    `_Salah catat? Ketik hapus #${transaksi.id}_` +
+    linkWeb
   );
 };
 
@@ -103,8 +108,13 @@ const pesanTransaksiBerhasil = (transaksi, saldoHariIni) => {
 
 /**
  * Format pesan saldo
+ * @param {object} saldoHari
+ * @param {object} saldoBulan
+ * @param {string|null} webUrl - URL website (mis. https://app.com/5/dashboard)
  */
-const pesanSaldo = (saldoHari, saldoBulan) => {
+const pesanSaldo = (saldoHari, saldoBulan, webUrl = null) => {
+  const linkWeb = webUrl ? `\n\n🌐 Dashboard lengkap: ${webUrl}` : '';
+
   return (
     `*Saldo Kakak*\n\n` +
     `*Hari Ini*\n` +
@@ -115,7 +125,8 @@ const pesanSaldo = (saldoHari, saldoBulan) => {
     `*Bulan Ini*\n` +
     `Masuk  : ${formatRupiah(saldoBulan.pemasukan)}\n` +
     `Keluar : ${formatRupiah(saldoBulan.pengeluaran)}\n` +
-    `Bersih : *${formatRupiah(saldoBulan.saldo)}*`
+    `Bersih : *${formatRupiah(saldoBulan.saldo)}*` +
+    linkWeb
   );
 };
 
@@ -125,8 +136,10 @@ const pesanSaldo = (saldoHari, saldoBulan) => {
 
 /**
  * Format pesan laporan lengkap
+ * @param {object} data
+ * @param {string|null} webUrl - URL website (mis. https://app.com/5/laporan)
  */
-const pesanLaporan = (data) => {
+const pesanLaporan = (data, webUrl = null) => {
   let text =
     `*LAPORAN ${data.labelPeriode.toUpperCase()}*\n` +
     `${formatTanggalLengkap(new Date())}\n\n` +
@@ -155,6 +168,10 @@ const pesanLaporan = (data) => {
     }
   }
 
+  if (webUrl) {
+    text += `\n🌐 Grafik lengkap: ${webUrl}`;
+  }
+
   return text;
 };
 
@@ -164,8 +181,11 @@ const pesanLaporan = (data) => {
 
 /**
  * Format pesan riwayat transaksi
+ * @param {Array} transaksiList
+ * @param {number} total
+ * @param {string|null} webUrl - URL website (mis. https://app.com/5/transaksi)
  */
-const pesanRiwayat = (transaksiList, total) => {
+const pesanRiwayat = (transaksiList, total, webUrl = null) => {
   if (!transaksiList || transaksiList.length === 0) {
     return (
       `*Belum ada transaksi yang tercatat, Kak.*\n\n` +
@@ -189,6 +209,10 @@ const pesanRiwayat = (transaksiList, total) => {
 
   text += `──────────────────────\n`;
   text += `_Hapus transaksi: hapus [id]_`;
+
+  if (webUrl) {
+    text += `\n🌐 Lihat semua: ${webUrl}`;
+  }
 
   return text;
 };
@@ -275,6 +299,104 @@ const pesanKonfirmasiTidakDikenali = () => {
   return `Ketik *ya* untuk hapus, atau *batal* untuk membatalkan.`;
 };
 
+// ═══════════════════════════════════════════════
+//  PESAN SCHEDULER
+// ═══════════════════════════════════════════════
+
+/**
+ * Reminder harian untuk user yang belum catat hari ini
+ * @param {string} nama
+ * @param {string|null} webUrl
+ */
+const pesanReminderHarian = (nama = 'Kak', webUrl = null) => {
+  const namaDisplay = nama || 'Kak';
+  const linkWeb = webUrl ? `\n\n🌐 Lihat catatan Kakak: ${webUrl}` : '';
+
+  return (
+    `⏰ *Reminder Harian — Izin Catat*\n\n` +
+    `Hai Kak *${namaDisplay}*! Izin mengingatkan 🙏\n\n` +
+    `Hari ini Kakak belum mencatat transaksi apapun.\n` +
+    `Yuk catat sekarang agar keuangan Kakak tetap terpantau!\n\n` +
+    `─────────────────────\n` +
+    `Contoh:\n` +
+    `   _catat keluar 25000 makan malam_\n` +
+    `   _catat masuk 500000 transfer_\n\n` +
+    `Ketik *saldo* untuk cek kondisi keuangan hari ini.` +
+    linkWeb
+  );
+};
+
+/**
+ * Weekly digest mingguan — ringkasan minggu lalu + perbandingan
+ * @param {string} nama
+ * @param {object} data - hasil getWeeklyDigestData()
+ * @param {string|null} webUrl
+ */
+const pesanWeeklyDigest = (nama = 'Kak', data, webUrl = null) => {
+  const namaDisplay = nama || 'Kak';
+  const { mingguLalu, mingguSebelumnya } = data;
+
+  // Format tanggal range
+  const opsiTanggal = { day: 'numeric', month: 'short', timeZone: 'Asia/Jakarta' };
+  const tglMulai = mingguLalu.mulai.toLocaleDateString('id-ID', opsiTanggal);
+  const tglSelesai = new Date(mingguLalu.selesai.getTime() - 1).toLocaleDateString('id-ID', opsiTanggal);
+
+  // Perbandingan pengeluaran
+  let infoPerbandingan = '';
+  if (mingguSebelumnya.totalKeluar > 0) {
+    const selisih = mingguLalu.totalKeluar - mingguSebelumnya.totalKeluar;
+    const persen = Math.abs((selisih / mingguSebelumnya.totalKeluar) * 100).toFixed(0);
+    if (selisih < 0) {
+      infoPerbandingan = `\n✅ Pengeluaran lebih *hemat ${persen}%* dibanding minggu lalu!`;
+    } else if (selisih > 0) {
+      infoPerbandingan = `\n⚠️ Pengeluaran *naik ${persen}%* dibanding minggu lalu.`;
+    } else {
+      infoPerbandingan = `\n➡️ Pengeluaran sama seperti minggu lalu.`;
+    }
+  }
+
+  // Top 3 kategori
+  let infoKategori = '';
+  if (mingguLalu.topKategori && mingguLalu.topKategori.length > 0) {
+    const totalKeluar = mingguLalu.totalKeluar || 1;
+    infoKategori = `\n*Top Pengeluaran*\n`;
+    for (const item of mingguLalu.topKategori) {
+      const persen = ((item.total / totalKeluar) * 100).toFixed(0);
+      infoKategori += `• ${item.kategori}: ${formatRupiah(item.total)} (${persen}%)\n`;
+    }
+  }
+
+  // Pesan jika tidak ada transaksi sama sekali
+  if (mingguLalu.jumlahTransaksi === 0) {
+    const linkWeb = webUrl ? `\n\n🌐 Mulai catat: ${webUrl}` : '';
+    return (
+      `📊 *Ringkasan Mingguan — Izin Catat*\n` +
+      `${tglMulai} – ${tglSelesai}\n\n` +
+      `Hai Kak *${namaDisplay}*!\n\n` +
+      `Minggu lalu Kakak belum mencatat transaksi apapun.\n` +
+      `Yuk mulai catat minggu ini agar keuangan lebih terpantau! 💪\n\n` +
+      `Ketik *bantuan* untuk melihat cara penggunaan.` +
+      linkWeb
+    );
+  }
+
+  const linkWeb = webUrl ? `\n\n🌐 Lihat grafik lengkap: ${webUrl}` : '';
+
+  return (
+    `📊 *Ringkasan Mingguan — Izin Catat*\n` +
+    `${tglMulai} – ${tglSelesai}\n\n` +
+    `Hai Kak *${namaDisplay}*! Ini laporan minggu lalu:\n\n` +
+    `💰 Pemasukan  : *${formatRupiah(mingguLalu.totalMasuk)}*\n` +
+    `💸 Pengeluaran: *${formatRupiah(mingguLalu.totalKeluar)}*\n` +
+    `──────────────────────\n` +
+    `💼 Bersih     : *${formatRupiah(mingguLalu.saldo)}*\n` +
+    infoKategori +
+    `\n📝 Total *${mingguLalu.jumlahTransaksi} transaksi* tercatat.` +
+    infoPerbandingan +
+    linkWeb
+  );
+};
+
 module.exports = {
   pesanSelamatDatang,
   pesanBantuan,
@@ -287,6 +409,8 @@ module.exports = {
   pesanBatalHapus,
   pesanKonfirmasiExpired,
   pesanKonfirmasiTidakDikenali,
+  pesanReminderHarian,
+  pesanWeeklyDigest,
   pesanErrorFormat,
   pesanErrorNominal,
   pesanErrorTransaksiNotFound,

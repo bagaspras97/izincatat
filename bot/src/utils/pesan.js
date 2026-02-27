@@ -86,7 +86,7 @@ const pesanTransaksiBerhasil = (transaksi, saldoHariIni, webUrl = null) => {
   const linkWeb = webUrl ? `\n🌐 Lihat di web: ${webUrl}` : '';
 
   return (
-    `✅ *Tercatat!*\n\n` +
+    `✅ *Izin mencatat!*\n\n` +
     `${jenisLabel}: *${tanda}${formatRupiah(transaksi.nominal)}*\n` +
     `Keterangan : ${transaksi.keterangan}\n` +
     `Kategori   : ${transaksi.kategori}\n` +
@@ -116,7 +116,7 @@ const pesanSaldo = (saldoHari, saldoBulan, webUrl = null) => {
   const linkWeb = webUrl ? `\n\n🌐 Dashboard lengkap: ${webUrl}` : '';
 
   return (
-    `*Saldo Kakak*\n\n` +
+    `Izin melaporkan saldo Kakak 🙏\n\n` +
     `*Hari Ini*\n` +
     `Masuk  : ${formatRupiah(saldoHari.pemasukan)}\n` +
     `Keluar : ${formatRupiah(saldoHari.pengeluaran)}\n` +
@@ -141,7 +141,7 @@ const pesanSaldo = (saldoHari, saldoBulan, webUrl = null) => {
  */
 const pesanLaporan = (data, webUrl = null) => {
   let text =
-    `*LAPORAN ${data.labelPeriode.toUpperCase()}*\n` +
+    `Izin melaporkan *LAPORAN ${data.labelPeriode.toUpperCase()}* 🙏\n` +
     `${formatTanggalLengkap(new Date())}\n\n` +
     `Masuk  : ${formatRupiah(data.totalMasuk)}\n` +
     `Keluar : ${formatRupiah(data.totalKeluar)}\n` +
@@ -188,13 +188,13 @@ const pesanLaporan = (data, webUrl = null) => {
 const pesanRiwayat = (transaksiList, total, webUrl = null) => {
   if (!transaksiList || transaksiList.length === 0) {
     return (
-      `*Belum ada transaksi yang tercatat, Kak.*\n\n` +
+      `Izin menyampaikan, belum ada transaksi yang tercatat, Kak.\n\n` +
       `Mulai catat dengan perintah:\n` +
       `_catat keluar 25000 makan siang_`
     );
   }
 
-  let text = `*Riwayat Transaksi* (${transaksiList.length} dari ${total})\n\n`;
+  let text = `Izin menampilkan *Riwayat Transaksi* (${transaksiList.length} dari ${total}) 🙏\n\n`;
 
   for (let i = 0; i < transaksiList.length; i++) {
     const trx = transaksiList[i];
@@ -228,7 +228,7 @@ const pesanKonfirmasiHapus = (trx) => {
   const jenisLabel = trx.jenis === 'keluar' ? 'Pengeluaran' : 'Pemasukan';
 
   return (
-    `⚠️ *Konfirmasi Hapus*\n\n` +
+    `⚠️ *Izin konfirmasi hapus*\n\n` +
     `ID         : #${trx.id}\n` +
     `Jenis      : ${jenisLabel}\n` +
     `Nominal    : ${formatRupiah(trx.nominal)}\n` +
@@ -243,7 +243,7 @@ const pesanKonfirmasiHapus = (trx) => {
  */
 const pesanHapusBerhasil = (trx) => {
   return (
-    `✅ Transaksi #${trx.id} berhasil dihapus.\n` +
+    `✅ Izin melaporkan, transaksi #${trx.id} berhasil dihapus.\n` +
     `${trx.keterangan} — ${formatRupiah(trx.nominal)}`
   );
 };
@@ -252,7 +252,7 @@ const pesanHapusBerhasil = (trx) => {
  * Pesan batal hapus
  */
 const pesanBatalHapus = () => {
-  return `Penghapusan dibatalkan. Data tetap aman.`;
+  return `Izin menyampaikan, penghapusan dibatalkan. Data Kakak tetap aman.`;
 };
 
 // ═══════════════════════════════════════════════
@@ -261,7 +261,7 @@ const pesanBatalHapus = () => {
 
 const pesanErrorFormat = () => {
   return (
-    `Format kurang tepat, Kak.\n\n` +
+    `Izin mengingatkan, format kurang tepat, Kak.\n\n` +
     `Contoh:\n` +
     `_catat keluar 25000 makan siang_\n` +
     `_catat masuk 5000000 gaji_\n\n` +
@@ -271,7 +271,7 @@ const pesanErrorFormat = () => {
 
 const pesanErrorNominal = () => {
   return (
-    `Nominal tidak valid, Kak.\n\n` +
+    `Izin mengingatkan, nominal tidak valid, Kak.\n\n` +
     `Contoh: _catat keluar 25000 makan siang_`
   );
 };
@@ -284,19 +284,19 @@ const pesanErrorTransaksiNotFound = (id) => {
 };
 
 const pesanErrorUmum = () => {
-  return `Maaf, ada masalah teknis. Coba lagi dalam beberapa saat.`;
+  return `Izin mohon maaf, ada masalah teknis. Coba lagi dalam beberapa saat.`;
 };
 
 const pesanTidakDikenali = () => {
-  return `Perintah tidak dikenali. Ketik *bantuan* untuk melihat daftar perintah.`;
+  return `Izin menyampaikan, perintah tidak dikenali. Ketik *bantuan* untuk melihat daftar perintah.`;
 };
 
 const pesanKonfirmasiExpired = () => {
-  return `Waktu konfirmasi sudah habis. Ulangi perintah hapus jika masih diperlukan.`;
+  return `Izin menyampaikan, waktu konfirmasi sudah habis. Ulangi perintah hapus jika masih diperlukan.`;
 };
 
 const pesanKonfirmasiTidakDikenali = () => {
-  return `Ketik *ya* untuk hapus, atau *batal* untuk membatalkan.`;
+  return `Izin mengingatkan, ketik *ya* untuk hapus, atau *batal* untuk membatalkan.`;
 };
 
 // ═══════════════════════════════════════════════

@@ -121,7 +121,6 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           <AnimatedSection>
             <div className="badge-glow mb-6 sm:mb-8">
-              <Zap size={12} className="text-accent" />
               <span>Bot Keuangan Pribadi via WhatsApp</span>
             </div>
           </AnimatedSection>

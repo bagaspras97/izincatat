@@ -119,11 +119,6 @@ export default function LandingPage() {
 
         {/* Content */}
         <div className="relative z-10 max-w-5xl mx-auto text-center">
-          <AnimatedSection>
-            <div className="badge-glow mb-6 sm:mb-8">
-              <span>Bot Keuangan Pribadi via WhatsApp</span>
-            </div>
-          </AnimatedSection>
 
           <AnimatedSection delay={0.1}>
             <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mb-6 sm:mb-8">

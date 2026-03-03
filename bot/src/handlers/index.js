@@ -11,6 +11,7 @@ const { handleLaporan } = require('./laporan');
 const { handleRiwayat } = require('./riwayat');
 const { pesanBantuan, pesanTidakDikenali, pesanErrorUmum } = require('../utils/pesan');
 const { normalisasiAngkaKata } = require('../utils/validator');
+const { detectIntent } = require('../services/intentDetector');
 
 /**
  * State management untuk percakapan multi-step (mis. konfirmasi hapus).
@@ -100,8 +101,61 @@ async function handleMessage(sock, sender, pesan, pushName) {
       return;
     }
 
-    // Pesan tidak dikenali
-    await sock.sendMessage(sender, { text: pesanTidakDikenali() });
+    // ── Fallback: AI Intent Detection ──────────────────────────────
+    // Tidak ada keyword yang cocok → coba parse natural language via AI
+
+    // Tampilkan indikator "mengetik" agar user tahu bot sedang memproses
+    try { await sock.sendPresenceUpdate('composing', sender); } catch (_) {}
+
+    const hasilAI = await detectIntent(pesanNormal);
+
+    try { await sock.sendPresenceUpdate('paused', sender); } catch (_) {}
+
+    if (!hasilAI.success || !hasilAI.data) {
+      await sock.sendMessage(sender, { text: pesanTidakDikenali() });
+      return;
+    }
+
+    const { intent, jenis, nominal, keterangan, periode, id } = hasilAI.data;
+
+    switch (intent) {
+      case 'catat': {
+        if (!nominal || !keterangan) {
+          await sock.sendMessage(sender, {
+            text: `Izin meminta info tambahan 🙏\n\nIzin Catat butuh nominal dan keterangan untuk mencatat transaksi.\n\nContoh:\n• _catat keluar 25000 makan siang_\n• _beli kopi 25rb_`,
+          });
+          return;
+        }
+        const pesanCatat = `catat ${jenis || 'keluar'} ${nominal} ${keterangan}`;
+        await handleCatat(sock, sender, pesanCatat, user);
+        break;
+      }
+      case 'hapus': {
+        if (!id) {
+          await sock.sendMessage(sender, {
+            text: `Izin meminta info tambahan 🙏\n\nTransaksi mana yang ingin dihapus? Ketik *riwayat* untuk melihat daftar + ID transaksi.`,
+          });
+          return;
+        }
+        await handleHapus(sock, sender, `hapus ${id}`, user, userStates);
+        break;
+      }
+      case 'saldo':
+        await handleSaldo(sock, sender, user);
+        break;
+      case 'laporan':
+        await handleLaporan(sock, sender, `laporan ${periode || 'bulan'}`, user);
+        break;
+      case 'riwayat':
+        await handleRiwayat(sock, sender, user);
+        break;
+      case 'bantuan':
+        await sock.sendMessage(sender, { text: pesanBantuan() });
+        break;
+      default:
+        // intent = tidak_relevan atau nilai lain
+        await sock.sendMessage(sender, { text: pesanTidakDikenali() });
+    }
   } catch (error) {
     console.error('Error handleMessage:', error);
     // Coba kirim pesan error ke user

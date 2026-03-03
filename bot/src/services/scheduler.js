@@ -8,6 +8,7 @@
 const cron = require('node-cron');
 const { getActiveUsers, countTransaksiHariIni, getWeeklyDigestData } = require('../database/queries');
 const { pesanReminderHarian, pesanWeeklyDigest } = require('../utils/pesan');
+const { prisma } = require('../database/prisma');
 
 // Simpan referensi cron tasks agar bisa di-stop
 const tasks = [];
@@ -127,11 +128,21 @@ function setupScheduler(sock) {
     }
   );
 
-  tasks.push(reminderHarian, weeklyDigest);
+  // ── Keep-alive ping: setiap 4 menit agar Supabase tidak sleep ──
+  const keepAlive = cron.schedule('*/4 * * * *', async () => {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+    } catch (_) {
+      // Abaikan error, ini hanya ping
+    }
+  });
+
+  tasks.push(reminderHarian, weeklyDigest, keepAlive);
 
   console.log('⏰ Scheduler aktif:');
   console.log('   • Reminder harian  → setiap hari jam 20:00 WIB');
   console.log('   • Weekly digest    → setiap Senin jam 08:00 WIB');
+  console.log('   • Keep-alive DB    → setiap 4 menit');
 }
 
 /**

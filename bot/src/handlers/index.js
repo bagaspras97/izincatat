@@ -9,7 +9,7 @@ const { handleCatat, handleHapus, handleKonfirmasiHapus, handleBayar } = require
 const { handleSaldo } = require('./saldo');
 const { handleLaporan } = require('./laporan');
 const { handleRiwayat } = require('./riwayat');
-const { pesanBantuan, pesanTidakDikenali, pesanErrorUmum } = require('../utils/pesan');
+const { pesanBantuan, pesanTidakDikenali, pesanErrorUmum, pesanInfoBot } = require('../utils/pesan');
 const { normalisasiAngkaKata } = require('../utils/validator');
 const { detectIntent } = require('../services/intentDetector');
 
@@ -151,6 +151,9 @@ async function handleMessage(sock, sender, pesan, pushName) {
         break;
       case 'bantuan':
         await sock.sendMessage(sender, { text: pesanBantuan() });
+        break;
+      case 'info_bot':
+        await sock.sendMessage(sender, { text: pesanInfoBot() });
         break;
       default:
         // intent = tidak_relevan atau nilai lain

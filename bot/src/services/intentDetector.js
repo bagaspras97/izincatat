@@ -42,6 +42,7 @@ Nilai intent yang valid:
 - "laporan"       → user minta laporan, ringkasan, rekap, summary keuangan
 - "riwayat"       → user minta daftar/list transaksi
 - "bantuan"       → user minta bantuan, cara pakai, fitur apa saja, help, menu
+- "info_bot"      → user bertanya tentang bot ini (apa ini, siapa yang buat, teknologi apa, gratis tidak, aman tidak, versi berapa, kontak, dll)
 - "tidak_relevan" → tidak ada hubungan dengan keuangan sama sekali
 
 Field tambahan (isi jika ada, null jika tidak):
@@ -74,6 +75,8 @@ Contoh input → output:
 "rekap minggu ini" → {"intent":"laporan","jenis":null,"nominal":null,"keterangan":null,"periode":"minggu","id":null}
 "list transaksi" → {"intent":"riwayat","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
 "cara pakai bot ini gimana?" → {"intent":"bantuan","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
+"bot ini buatan siapa?" → {"intent":"info_bot","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
+"apakah data saya aman?" → {"intent":"info_bot","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
 "halo selamat pagi" → {"intent":"tidak_relevan","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}`;
 
 /**

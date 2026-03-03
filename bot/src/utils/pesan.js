@@ -291,6 +291,28 @@ const pesanTidakDikenali = () => {
   return `Izin menyampaikan, perintah tidak dikenali. Ketik *bantuan* untuk melihat daftar perintah.`;
 };
 
+const pesanInfoBot = () => {
+  const webUrl = process.env.WEB_URL || 'https://izincatat.vercel.app';
+  return (
+    `*Izin Catat — Info Bot* 📝\n\n` +
+    `Halo! Izin Catat adalah asisten keuangan pribadi berbasis WhatsApp.\n\n` +
+    `*🤔 Apa itu Izin Catat?*\n` +
+    `Bot pencatat keuangan harian langsung dari WhatsApp — tanpa install aplikasi, tanpa ribet.\n\n` +
+    `*✨ Fitur utama:*\n` +
+    `• Catat pemasukan & pengeluaran\n` +
+    `• Laporan harian, mingguan, bulanan\n` +
+    `• Riwayat transaksi + hapus transaksi\n` +
+    `• Input natural (cukup ketik seperti chat biasa)\n` +
+    `• Dashboard web untuk grafik & analisis\n\n` +
+    `*🔒 Apakah data saya aman?*\n` +
+    `Ya. Data kamu disimpan terenkripsi dan tidak dibagikan ke siapapun.\n\n` +
+    `*🌐 Website:*\n` +
+    `${webUrl}\n\n` +
+    `*💬 Butuh bantuan?*\n` +
+    `Ketik *bantuan* untuk melihat daftar perintah.`
+  );
+};
+
 const pesanKonfirmasiExpired = () => {
   return `Izin menyampaikan, waktu konfirmasi sudah habis. Ulangi perintah hapus jika masih diperlukan.`;
 };
@@ -416,4 +438,5 @@ module.exports = {
   pesanErrorTransaksiNotFound,
   pesanErrorUmum,
   pesanTidakDikenali,
+  pesanInfoBot,
 };

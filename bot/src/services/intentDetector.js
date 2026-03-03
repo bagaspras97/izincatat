@@ -94,7 +94,6 @@ async function detectIntent(pesan) {
       ],
       temperature: 0.1,      // Rendah agar deterministik
       max_tokens: 150,        // JSON singkat, tidak perlu banyak
-      response_format: { type: 'json_object' },
     });
 
     const raw = completion.choices[0]?.message?.content;
@@ -102,13 +101,21 @@ async function detectIntent(pesan) {
       return { success: false, data: null, error: 'Respons kosong dari AI' };
     }
 
-    const parsed = JSON.parse(raw);
+    // Ekstrak JSON dari response (model kadang membungkus dengan ```json ... ```)
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('[IntentDetector] Tidak ada JSON di response:', raw);
+      return { success: false, data: null, error: 'JSON tidak ditemukan di response' };
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
 
     // Validasi minimal: field intent harus ada
     if (!parsed.intent) {
       return { success: false, data: null, error: 'Field intent tidak ditemukan' };
     }
 
+    console.log(`[IntentDetector] "${pesan}" → intent: ${parsed.intent}`);
     return { success: true, data: parsed, error: null };
   } catch (err) {
     console.error('[IntentDetector] Error:', err.message);

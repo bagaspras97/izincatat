@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma, { resolveUserId } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 /**
  * GET /api/laporan?userId=clxyz...&periode=bulan
- * Laporan pemasukan vs pengeluaran per hari dalam periode
+ * Laporan pemasukan vs pengeluaran per hari dalam periode.
+ *
+ * Optimasi: eliminasi resolveUserId round-trip — filter langsung via user.publicId (JOIN).
  */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
+    const publicId = searchParams.get('userId');
+    if (!publicId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+
     const periode = searchParams.get('periode') || 'bulan'; // minggu | bulan | tahun
-    const userId = await resolveUserId(searchParams.get('userId'));
 
     const now = new Date();
     let mulai: Date;
@@ -28,10 +32,7 @@ export async function GET(req: NextRequest) {
     }
 
     const transaksi = await prisma.transaksi.findMany({
-      where: {
-        tanggal: { gte: mulai },
-        ...(userId ? { userId } : {}),
-      },
+      where: { user: { publicId }, tanggal: { gte: mulai } },
       orderBy: { tanggal: 'asc' },
       select: { jenis: true, nominal: true, tanggal: true, kategori: true },
     });
@@ -93,15 +94,18 @@ export async function GET(req: NextRequest) {
     const totalMasuk = masuk.reduce((a, b) => a + b, 0);
     const totalKeluar = keluar.reduce((a, b) => a + b, 0);
 
-    return NextResponse.json({
-      labels,
-      masuk,
-      keluar,
-      kategori,
-      totalMasuk,
-      totalKeluar,
-      saldo: totalMasuk - totalKeluar,
-    });
+    return NextResponse.json(
+      {
+        labels,
+        masuk,
+        keluar,
+        kategori,
+        totalMasuk,
+        totalKeluar,
+        saldo: totalMasuk - totalKeluar,
+      },
+      { headers: { 'Cache-Control': 'private, max-age=20, stale-while-revalidate=60' } },
+    );
   } catch (error) {
     console.error('API Laporan error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

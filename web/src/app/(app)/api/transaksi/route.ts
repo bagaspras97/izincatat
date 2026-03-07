@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma, { resolveUserId } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import { decrypt } from '@/lib/crypto';
 
 /**
@@ -7,20 +7,24 @@ import { decrypt } from '@/lib/crypto';
  *
  * Catatan: field `keterangan` dienkripsi di DB (AES-256-GCM).
  * Pencarian by keterangan dilakukan in-memory setelah dekripsi.
+ *
+ * Optimasi: eliminasi resolveUserId round-trip — filter langsung via user.publicId (JOIN).
  */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
+    const publicId = searchParams.get('userId');
+    if (!publicId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
+
     const page = Math.max(1, Number(searchParams.get('page')) || 1);
     const limit = Math.min(100, Math.max(1, Number(searchParams.get('limit')) || 20));
     const jenis = searchParams.get('jenis'); // masuk | keluar | null
     const search = searchParams.get('search')?.trim().toLowerCase() || '';
     const sort = searchParams.get('sort') || 'terbaru'; // terbaru | terlama | terbesar | terkecil
-    const userId = await resolveUserId(searchParams.get('userId'));
 
-    // Filter jenis dan user bisa di DB (tidak sensitif)
+    // Filter langsung via relation — Prisma generate JOIN, tidak perlu SELECT id dulu
     const where = {
-      ...(userId ? { userId } : {}),
+      user: { publicId },
       ...(jenis === 'masuk' || jenis === 'keluar' ? { jenis } : {}),
     };
 
@@ -76,23 +80,26 @@ export async function GET(req: NextRequest) {
       prisma.transaksi.count({ where }),
     ]);
 
-    return NextResponse.json({
-      data: transaksi.map((t) => ({
-        id: t.id,
-        jenis: t.jenis,
-        nominal: Number(t.nominal),
-        keterangan: decrypt(t.keterangan),
-        kategori: t.kategori,
-        tanggal: t.tanggal,
-        user: t.user?.nama,
-      })),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+    return NextResponse.json(
+      {
+        data: transaksi.map((t) => ({
+          id: t.id,
+          jenis: t.jenis,
+          nominal: Number(t.nominal),
+          keterangan: decrypt(t.keterangan),
+          kategori: t.kategori,
+          tanggal: t.tanggal,
+          user: t.user?.nama,
+        })),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       },
-    });
+      { headers: { 'Cache-Control': 'private, no-store' } },
+    );
   } catch (error) {
     console.error('API Transaksi error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -86,6 +86,7 @@ async function handleWebhook(req, res) {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('ok');
 
+    const t0 = Date.now();
     console.log('[Webhook] Payload masuk:', JSON.stringify(payload));
 
     const { phone, message, name, file, isGroup } = payload;
@@ -130,6 +131,7 @@ async function handleWebhook(req, res) {
 
     console.log(`📩 Pesan dari ${pushName || phone}: "${message}"`);
     await handleMessage(sock, sender, message, pushName);
+    console.log(`⏱️  Selesai dalam ${Date.now() - t0}ms`);
 
   } catch (err) {
     console.error('[Webhook] Error:', err.message);

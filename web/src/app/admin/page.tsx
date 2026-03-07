@@ -35,6 +35,37 @@ export default function AdminUsersPage() {
   const [editExpiry, setEditExpiry] = useState('');
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
+  const [hargaPro, setHargaPro] = useState(15000);
+  const [hargaCouple, setHargaCouple] = useState(29000);
+  const [savingPricing, setSavingPricing] = useState(false);
+  const [priceMsg, setPriceMsg] = useState('');
+
+  const fetchPricing = useCallback(async (s: string) => {
+    const res = await fetch('/api/admin/settings', {
+      headers: { 'x-admin-secret': s },
+    });
+    if (res.ok) {
+      const d = await res.json();
+      setHargaPro(d.harga_pro);
+      setHargaCouple(d.harga_couple);
+    }
+  }, []);
+
+  const savePricing = async () => {
+    setSavingPricing(true);
+    setPriceMsg('');
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
+        body: JSON.stringify({ harga_pro: hargaPro, harga_couple: hargaCouple }),
+      });
+      setPriceMsg(res.ok ? '✓ Tersimpan' : '✗ Gagal menyimpan');
+      setTimeout(() => setPriceMsg(''), 3000);
+    } finally {
+      setSavingPricing(false);
+    }
+  };
 
   const fetchUsers = useCallback(async (s: string) => {
     setLoading(true);
@@ -47,12 +78,13 @@ export default function AdminUsersPage() {
       if (!res.ok) { setError('Gagal ambil data.'); return; }
       setUsers(await res.json());
       setAuthed(true);
+      await fetchPricing(s);
     } catch {
       setError('Network error.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchPricing]);
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -138,6 +170,45 @@ export default function AdminUsersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+
+        {/* Harga Tier */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4">💰 Harga Tier (tampil di landing page)</h2>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="space-y-1">
+              <label className="text-xs text-[var(--text-muted)] block">Harga PRO (Rp/bulan)</label>
+              <input
+                type="number"
+                min={0}
+                value={hargaPro}
+                onChange={(e) => setHargaPro(Number(e.target.value))}
+                className="px-3 py-2 rounded-xl border border-[var(--border-card)] bg-[var(--bg-primary)] text-[var(--text-primary)] text-sm outline-none focus:border-[var(--accent)] w-40"
+              />
+              <p className="text-[10px] text-[var(--text-muted)]">Tampil: {hargaPro >= 1_000_000 ? `${Math.round(hargaPro / 1_000_000)}jt` : hargaPro >= 1_000 ? `${Math.round(hargaPro / 1_000)}rb` : String(hargaPro)}</p>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-[var(--text-muted)] block">Harga COUPLE (Rp/bulan)</label>
+              <input
+                type="number"
+                min={0}
+                value={hargaCouple}
+                onChange={(e) => setHargaCouple(Number(e.target.value))}
+                className="px-3 py-2 rounded-xl border border-[var(--border-card)] bg-[var(--bg-primary)] text-[var(--text-primary)] text-sm outline-none focus:border-[var(--accent)] w-40"
+              />
+              <p className="text-[10px] text-[var(--text-muted)]">Tampil: {hargaCouple >= 1_000_000 ? `${Math.round(hargaCouple / 1_000_000)}jt` : hargaCouple >= 1_000 ? `${Math.round(hargaCouple / 1_000)}rb` : String(hargaCouple)}</p>
+            </div>
+            <div className="flex items-center gap-3 pb-5">
+              <button
+                onClick={savePricing}
+                disabled={savingPricing}
+                className="px-5 py-2 rounded-xl bg-[var(--accent)] text-white text-sm font-medium disabled:opacity-50"
+              >
+                {savingPricing ? 'Menyimpan...' : 'Simpan Harga'}
+              </button>
+              {priceMsg && <span className="text-xs text-[var(--text-muted)]">{priceMsg}</span>}
+            </div>
+          </div>
         </div>
 
         {/* Tabel */}

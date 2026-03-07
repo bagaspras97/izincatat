@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AnimatedSection } from '@/components/landing/AnimatedSection';
 import { FloatingElements } from '@/components/landing/FloatingElements';
@@ -82,9 +83,31 @@ const commands = [
 
 const WA_LINK = 'https://wa.me/6281234567890?text=Halo';
 
+function formatHarga(n: number): string {
+  if (n === 0) return 'Gratis';
+  if (n >= 1_000_000) return `${Math.round(n / 1_000_000)}jt`;
+  if (n >= 1_000) return `${Math.round(n / 1_000)}rb`;
+  return n.toLocaleString('id-ID');
+}
+
 /* ─── COMPONENT ─── */
 
 export default function LandingPage() {
+  const [hargaPro, setHargaPro] = useState(15000);
+  const [hargaCouple, setHargaCouple] = useState(29000);
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d) {
+          setHargaPro(d.harga_pro);
+          setHargaCouple(d.harga_couple);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       {/* ─── NAVBAR ─── */}
@@ -354,7 +377,7 @@ export default function LandingPage() {
               <GlowCard className="flex flex-col h-full">
                 <p className="text-xs font-medium text-text-muted uppercase tracking-widest mb-4">Basic</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <p className="text-4xl font-black text-text-primary">15rb</p>
+                  <p className="text-4xl font-black text-text-primary">{formatHarga(hargaPro)}</p>
                   <p className="text-text-muted text-sm mb-1.5">/bulan</p>
                 </div>
                 <p className="text-text-muted text-sm mb-7">Untuk pemakaian harian</p>
@@ -383,7 +406,7 @@ export default function LandingPage() {
                 <GlowCard className="flex flex-col h-full pricing-popular">
                   <p className="text-xs font-medium text-accent uppercase tracking-widest mb-4">Pro</p>
                   <div className="flex items-end gap-1 mb-1">
-                    <p className="text-4xl font-black text-text-primary">29rb</p>
+                    <p className="text-4xl font-black text-text-primary">{formatHarga(hargaCouple)}</p>
                     <p className="text-text-muted text-sm mb-1.5">/bulan</p>
                   </div>
                   <p className="text-text-muted text-sm mb-7">Tanpa batas, tanpa khawatir</p>

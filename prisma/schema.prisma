@@ -44,3 +44,11 @@ model Transaksi {
   @@index([tanggal])
   @@map("transaksi")
 }
+
+/// Tabel settings — konfigurasi aplikasi (key-value)
+model Setting {
+  key   String @id
+  value String
+
+  @@map("settings")
+}

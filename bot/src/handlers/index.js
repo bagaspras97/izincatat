@@ -101,6 +101,13 @@ async function handleMessage(sock, sender, pesan, pushName) {
       return;
     }
 
+    // Sapaan umum — balas dengan menu tanpa panggil AI
+    const sapaanList = ['hai', 'halo', 'halo!', 'hai!', 'hi', 'hi!', 'hey', 'hei', 'hello', 'p', 'ping', 'tes', 'test'];
+    if (sapaanList.includes(pesanLower)) {
+      await sock.sendMessage(sender, { text: pesanBantuan() });
+      return;
+    }
+
     // ── Fallback: AI Intent Detection ──────────────────────────────
     // Tidak ada keyword yang cocok → coba parse natural language via AI
 

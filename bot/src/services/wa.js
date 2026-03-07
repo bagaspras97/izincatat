@@ -86,9 +86,10 @@ function normalizePhone(jid) {
 async function wablasSendText(jid, text) {
   const phone = normalizePhone(jid);
   try {
-    await wablasRequest('POST', '/api/v2/send-message', {
+    const result = await wablasRequest('POST', '/api/v2/send-message', {
       data: [{ phone, message: text }],
     });
+    console.log(`[WA] sendMessage ke ${phone}:`, JSON.stringify(result));
   } catch (err) {
     console.error(`[WA] Gagal kirim teks ke ${phone}:`, err.message);
     throw err;

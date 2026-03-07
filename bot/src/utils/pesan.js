@@ -419,6 +419,47 @@ const pesanWeeklyDigest = (nama = 'Kak', data, webUrl = null) => {
   );
 };
 
+// ═══════════════════════════════════════════════
+//  BILLING
+// ═══════════════════════════════════════════════
+
+const pesanLimitGratis = (used, limit) =>
+  `⚠️ *Batas transaksi bulan ini sudah tercapai.*
+
+` +
+  `Akun Gratis: ${used}/${limit} transaksi terpakai bulan ini.
+
+` +
+  `Untuk lanjut mencatat tanpa batas, upgrade ke *Pro*:
+` +
+  `   • *Pro* — Rp 25.000/bulan (unlimited transaksi)
+` +
+  `   • *Couple* — Rp 35.000/bulan (2 akun sekaligus)
+
+` +
+  `Hubungi admin untuk upgrade: *upgrade*`;
+
+const pesanStatusTier = (tier, tierExpiry, used, limit) => {
+  const tierLabel = { GRATIS: 'Gratis 🌟', PRO: 'Pro ⭐', COUPLE: 'Couple 💑' }[tier] || tier;
+  let info = `*Status Akun Izin Catat*
+
+Paket: *${tierLabel}*
+`;
+  if (tierExpiry) {
+    const exp = new Date(tierExpiry);
+    info += `Aktif hingga: *${exp.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}*
+`;
+  }
+  if (tier === 'GRATIS') {
+    info +=
+      `\nTransaksi bulan ini: *${used}/${limit}*\n\n` +
+      `Upgrade ke Pro untuk transaksi unlimited → ketik *upgrade*`;
+  } else {
+    info += `\nTransaksi: *Unlimited* ✅`;
+  }
+  return info;
+};
+
 module.exports = {
   pesanSelamatDatang,
   pesanBantuan,
@@ -439,4 +480,6 @@ module.exports = {
   pesanErrorUmum,
   pesanTidakDikenali,
   pesanInfoBot,
+  pesanLimitGratis,
+  pesanStatusTier,
 };

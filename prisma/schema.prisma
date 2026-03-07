@@ -13,13 +13,17 @@ datasource db {
 
 /// Tabel users — menyimpan data pengguna WhatsApp
 model User {
-  id        Int         @id @default(autoincrement())
-  publicId  String      @unique @default(cuid()) @map("public_id")
-  nomorWa   String      @unique @map("nomor_wa")
-  nama      String?
-  createdAt DateTime    @default(now()) @map("created_at")
-  isActive  Boolean     @default(true) @map("is_active")
-  transaksi Transaksi[]
+  id          Int         @id @default(autoincrement())
+  publicId    String      @unique @default(cuid()) @map("public_id")
+  nomorWa     String      @unique @map("nomor_wa")
+  nama        String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  isActive    Boolean     @default(true) @map("is_active")
+  /// Tier langganan: GRATIS | PRO | COUPLE
+  tier        String      @default("GRATIS")
+  /// Tanggal berakhir langganan PRO/COUPLE (null = GRATIS atau berlaku seumur hidup)
+  tierExpiry  DateTime?   @map("tier_expiry")
+  transaksi   Transaksi[]
 
   @@map("users")
 }

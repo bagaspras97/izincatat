@@ -4,7 +4,7 @@
  * dan penghapusan transaksi (hapus [id]).
  */
 
-const { simpanTransaksi, getSaldoHariIni, getTransaksiById, hapusTransaksi } = require('../database/queries');
+const { simpanTransaksi, getSaldoHariIni, getTransaksiById, hapusTransaksi, checkBillingLimit } = require('../database/queries');
 const { autoKategorisasi } = require('../services/kategorisasi');
 const { parseCatat, validasiIdTransaksi } = require('../utils/validator');
 const {
@@ -16,6 +16,7 @@ const {
   pesanKonfirmasiTidakDikenali,
   pesanErrorTransaksiNotFound,
   pesanErrorUmum,
+  pesanLimitGratis,
 } = require('../utils/pesan');
 
 /**
@@ -34,6 +35,13 @@ async function handleCatat(sock, sender, pesan, user) {
 
     if (!valid) {
       await sock.sendMessage(sender, { text: error });
+      return;
+    }
+
+    // Cek batas transaksi berdasarkan tier
+    const billing = await checkBillingLimit(user); // NOSONAR
+    if (!billing.allowed) {
+      await sock.sendMessage(sender, { text: pesanLimitGratis(billing.used, billing.limit) });
       return;
     }
 

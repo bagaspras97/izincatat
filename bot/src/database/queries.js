@@ -379,6 +379,64 @@ async function getWeeklyDigestData(userId) {
   };
 }
 
+// ═══════════════════════════════════════════════
+//  BILLING QUERIES
+// ═══════════════════════════════════════════════
+
+const TIER_LIMIT = {
+  GRATIS: 50,
+  PRO: Infinity,
+  COUPLE: Infinity,
+};
+
+/**
+ * Hitung jumlah transaksi user di bulan berjalan.
+ * @param {number} userId
+ * @returns {number}
+ */
+async function countTransaksiBulanIni(userId) {
+  const now = new Date();
+  const mulai = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+  const selesai = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
+  return prisma.transaksi.count({
+    where: { userId, tanggal: { gte: mulai, lt: selesai } },
+  });
+}
+
+/**
+ * Cek apakah user masih boleh mencatat transaksi baru.
+ * @param {object} user - Data user dari database
+ * @returns {{ allowed: boolean, used: number, limit: number, tier: string }}
+ */
+async function checkBillingLimit(user) {
+  // Tentukan tier aktif — expire ke GRATIS jika tierExpiry sudah lewat
+  let tier = user.tier || 'GRATIS';
+  if (tier !== 'GRATIS' && user.tierExpiry && new Date() > new Date(user.tierExpiry)) {
+    tier = 'GRATIS';
+    // Downgrade otomatis di database (fire and forget)
+    prisma.user.update({ where: { id: user.id }, data: { tier: 'GRATIS', tierExpiry: null } }).catch(() => {});
+  }
+
+  const limit = TIER_LIMIT[tier] ?? TIER_LIMIT.GRATIS;
+  if (limit === Infinity) return { allowed: true, used: 0, limit, tier };
+
+  const used = await countTransaksiBulanIni(user.id); // NOSONAR
+  return { allowed: used < limit, used, limit, tier };
+}
+
+/**
+ * Upgrade tier user (dipakai admin/manual).
+ * @param {string} nomorWa
+ * @param {'PRO'|'COUPLE'} tier
+ * @param {Date} expiry
+ */
+async function upgradeTier(nomorWa, tier, expiry) {
+  return prisma.user.update({
+    where: { nomorWa },
+    data: { tier, tierExpiry: expiry },
+  });
+}
+
 module.exports = {
   getOrCreateUser,
   getUserByNomorWa,
@@ -392,4 +450,8 @@ module.exports = {
   getActiveUsers,
   countTransaksiHariIni,
   getWeeklyDigestData,
+  countTransaksiBulanIni,
+  checkBillingLimit,
+  upgradeTier,
+  TIER_LIMIT,
 };

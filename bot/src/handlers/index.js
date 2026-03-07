@@ -9,9 +9,10 @@ const { handleCatat, handleHapus, handleKonfirmasiHapus, handleBayar } = require
 const { handleSaldo } = require('./saldo');
 const { handleLaporan } = require('./laporan');
 const { handleRiwayat } = require('./riwayat');
-const { pesanBantuan, pesanTidakDikenali, pesanErrorUmum, pesanInfoBot } = require('../utils/pesan');
+const { pesanBantuan, pesanTidakDikenali, pesanErrorUmum, pesanInfoBot, pesanStatusTier, pesanLimitGratis } = require('../utils/pesan');
 const { normalisasiAngkaKata } = require('../utils/validator');
 const { detectIntent } = require('../services/intentDetector');
+const { checkBillingLimit } = require('../database/queries');
 
 /**
  * State management untuk percakapan multi-step (mis. konfirmasi hapus).
@@ -105,6 +106,20 @@ async function handleMessage(sock, sender, pesan, pushName) {
     const sapaanList = ['hai', 'halo', 'halo!', 'hai!', 'hi', 'hi!', 'hey', 'hei', 'hello', 'p', 'ping', 'tes', 'test'];
     if (sapaanList.includes(pesanLower)) {
       await sock.sendMessage(sender, { text: pesanBantuan() });
+      return;
+    }
+
+    // Command: upgrade — info cara upgrade
+    if (pesanLower === 'upgrade') {
+      const billing = await checkBillingLimit(user); // NOSONAR
+      await sock.sendMessage(sender, { text: pesanLimitGratis(billing.used, billing.limit) });
+      return;
+    }
+
+    // Command: status — info tier & sisa transaksi
+    if (pesanLower === 'status' || pesanLower === 'tier' || pesanLower === 'akun') {
+      const billing = await checkBillingLimit(user); // NOSONAR
+      await sock.sendMessage(sender, { text: pesanStatusTier(billing.tier, user.tierExpiry, billing.used, billing.limit) });
       return;
     }
 

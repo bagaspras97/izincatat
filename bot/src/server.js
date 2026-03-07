@@ -79,22 +79,14 @@ function downloadBuffer(url) {
 // ═══════════════════════════════════════════════
 
 async function handleWebhook(req, res) {
-  // Respond immediately — Wablas tidak butuh response body
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('ok');
-
   try {
     const payload = await parseBody(req);
 
-    // Validasi token sederhana (opsional tapi disarankan)
-    const secret = process.env.WEBHOOK_SECRET;
-    if (secret) {
-      const incoming = req.headers['x-wablas-token'] || req.headers['authorization'];
-      if (incoming !== secret) {
-        console.warn('[Webhook] Token tidak valid, abaikan request');
-        return;
-      }
-    }
+    // Respond setelah body dibaca
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('ok');
+
+    console.log('[Webhook] Payload masuk:', JSON.stringify(payload));
 
     const { phone, message, name, file, isGroup } = payload;
 

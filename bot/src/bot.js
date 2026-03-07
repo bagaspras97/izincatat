@@ -19,6 +19,7 @@ const { handleMessage } = require('./handlers');
 const { testConnection } = require('./database/prisma');
 const { setupScheduler, stopScheduler } = require('./services/scheduler');
 const { transcribeAudio } = require('./services/whisper');
+const { createSock } = require('./services/wa');
 
 // Logger Baileys — level info supaya tidak terlalu verbose
 const logger = pino({ level: 'silent' });
@@ -114,7 +115,7 @@ async function startBot() {
 
       // Stop scheduler lama (jika ada dari reconnect) lalu setup ulang dengan socket baru
       stopScheduler();
-      setupScheduler(sock);
+      setupScheduler(createSock(sock));
     }
   });
 
@@ -167,8 +168,9 @@ async function startBot() {
 
             const { success, text } = await transcribeAudio(buffer);
 
+            const waSock = createSock(sock);
             if (!success || !text) {
-              await sock.sendMessage(sender, {
+              await waSock.sendMessage(sender, {
                 text: 'Maaf, tidak bisa mendengar pesanmu. Coba ulangi atau ketik pesannya ya.',
               });
               continue;
@@ -178,12 +180,12 @@ async function startBot() {
             console.log(`📝 Transkripsi: "${pesanText}"`);
 
             // Beritahu user apa yang didengar oleh bot
-            await sock.sendMessage(sender, {
+            await waSock.sendMessage(sender, {
               text: `🎤 _Saya dengar:_ "${pesanText}"`,
             });
           } catch (voiceErr) {
             console.error('Error memproses voice note:', voiceErr);
-            await sock.sendMessage(sender, {
+            await createSock(sock).sendMessage(sender, {
               text: 'Gagal memproses pesan suara. Coba ketik pesannya ya.',
             });
             continue;
@@ -197,7 +199,7 @@ async function startBot() {
         console.log(`📩 Pesan dari ${pushName || sender}: "${pesanText}"`);
 
         // Route ke handler
-        await handleMessage(sock, sender, pesanText, pushName);
+        await handleMessage(createSock(sock), sender, pesanText, pushName);
       }
     } catch (error) {
       console.error('Error processing message:', error);

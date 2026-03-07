@@ -7,9 +7,10 @@
 // Load environment variables
 require('dotenv').config();
 
-const { startBot } = require('./src/bot');
 const { disconnect } = require('./src/database/prisma');
 const { stopScheduler } = require('./src/services/scheduler');
+
+const WA_PROVIDER = (process.env.WA_PROVIDER || 'baileys').toLowerCase();
 
 // ═══════════════════════════════════════════════
 //  STARTUP
@@ -20,10 +21,16 @@ async function main() {
     console.log('🚀 Memulai Izin Catat Bot...');
     console.log(`📅 ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`);
     console.log(`🔧 Mode: ${process.env.DEBUG === 'true' ? 'DEBUG' : 'PRODUCTION'}`);
+    console.log(`📱 Provider: ${WA_PROVIDER.toUpperCase()}`);
     console.log('');
 
-    // Jalankan bot
-    await startBot();
+    if (WA_PROVIDER === 'wablas') {
+      const { startWebhookServer } = require('./src/server');
+      await startWebhookServer();
+    } else {
+      const { startBot } = require('./src/bot');
+      await startBot();
+    }
   } catch (error) {
     console.error('❌ Fatal error saat memulai bot:', error);
     process.exit(1);

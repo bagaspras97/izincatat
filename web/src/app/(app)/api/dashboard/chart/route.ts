@@ -1,22 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma, { resolveUserId } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 /**
  * GET /api/dashboard/chart?userId=...
  * Data 7 hari terakhir untuk bar chart & sparklines.
- * Queries: resolveUserId → 1×findMany → aggregasi JS
+ *
+ * Optimasi: eliminasi resolveUserId round-trip — filter langsung via user.publicId (JOIN).
+ * Satu round-trip DB: 1×findMany → aggregasi JS.
  */
 export async function GET(req: NextRequest) {
   try {
-    const userId = await resolveUserId(req.nextUrl.searchParams.get('userId'));
-    const userFilter = userId ? { userId } : {};
+    const publicId = req.nextUrl.searchParams.get('userId');
+    if (!publicId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
 
     const now = new Date();
     const day0Start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
     const todayEnd  = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
     const rows = await prisma.transaksi.findMany({
-      where: { ...userFilter, tanggal: { gte: day0Start, lt: todayEnd } },
+      where: { user: { publicId }, tanggal: { gte: day0Start, lt: todayEnd } },
       select: { tanggal: true, jenis: true, nominal: true },
     });
 
@@ -31,7 +33,10 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ last7days });
+    return NextResponse.json(
+      { last7days },
+      { headers: { 'Cache-Control': 'private, max-age=20, stale-while-revalidate=60' } },
+    );
   } catch (e) {
     console.error('dashboard/chart error:', e);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma, { resolveUserId } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 /**
  * GET /api/dashboard/recent?userId=...
  * 5 transaksi terakhir.
- * Queries: resolveUserId → 1×findMany
+ *
+ * Optimasi: eliminasi resolveUserId round-trip — filter langsung via user.publicId (JOIN).
+ * Satu round-trip DB: 1×findMany.
  */
 export async function GET(req: NextRequest) {
   try {
-    const userId = await resolveUserId(req.nextUrl.searchParams.get('userId'));
-    const userFilter = userId ? { userId } : {};
+    const publicId = req.nextUrl.searchParams.get('userId');
+    if (!publicId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
 
     const recentTransactions = await prisma.transaksi.findMany({
-      where: userFilter,
+      where: { user: { publicId } },
       orderBy: { tanggal: 'desc' },
       take: 5,
       select: {
@@ -25,12 +27,15 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      recentTransactions: recentTransactions.map((t) => ({
-        ...t,
-        nominal: Number(t.nominal),
-      })),
-    });
+    return NextResponse.json(
+      {
+        recentTransactions: recentTransactions.map((t) => ({
+          ...t,
+          nominal: Number(t.nominal),
+        })),
+      },
+      { headers: { 'Cache-Control': 'private, max-age=20, stale-while-revalidate=60' } },
+    );
   } catch (e) {
     console.error('dashboard/recent error:', e);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

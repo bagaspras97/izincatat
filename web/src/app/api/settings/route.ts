@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 const DEFAULTS = { harga_pro: 15000, harga_couple: 29000 };
 

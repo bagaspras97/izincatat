@@ -1,7 +1,7 @@
 import { Wallet, ArrowUpRight, ArrowDownRight, Hash } from 'lucide-react';
 import { formatRupiah, formatTanggal } from '@/lib/format';
 import { decrypt } from '@/lib/crypto';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import DashboardCharts from './DashboardCharts';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

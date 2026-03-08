@@ -1,6 +1,6 @@
-import { getKategoriColor } from '@/components/charts/DoughnutChart';
+import { getKategoriColor } from '@/lib/kategoriColor';
 import { formatRupiah } from '@/lib/format';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import KategoriChart from './KategoriChart';
 
 export default async function KategoriPage({ params }: { params: Promise<{ userId: string }> }) {

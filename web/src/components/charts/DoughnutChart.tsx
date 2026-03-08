@@ -2,28 +2,13 @@
 
 import '@/lib/chartSetup';
 import { Doughnut } from 'react-chartjs-2';
+// Re-export agar import lama tidak perlu diubah
+export { getKategoriColor } from '@/lib/kategoriColor';
 
 interface DoughnutChartProps {
   labels: string[];
   data: number[];
   colors: string[];
-}
-
-const KATEGORI_COLORS: Record<string, string> = {
-  'Makanan & Minuman': '#E8FF57',
-  'Transportasi': '#60A5FA',
-  'Belanja': '#F472B6',
-  'Tagihan': '#F87171',
-  'Hiburan': '#A78BFA',
-  'Kesehatan': '#4ADE80',
-  'Pendidikan': '#FBBF24',
-  'Gaji': '#34D399',
-  'Transfer': '#38BDF8',
-  'Lainnya': '#666666',
-};
-
-export function getKategoriColor(kategori: string): string {
-  return KATEGORI_COLORS[kategori] || '#666666';
 }
 
 export default function DoughnutChart({ labels, data, colors }: DoughnutChartProps) {

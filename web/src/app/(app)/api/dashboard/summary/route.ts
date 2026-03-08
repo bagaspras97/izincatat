@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 type AggRow = { jenis: string; _sum: { nominal: unknown } };
 const sumOf = (rows: AggRow[], jenis: string) =>

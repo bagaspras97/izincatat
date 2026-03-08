@@ -1,43 +1,34 @@
-'use client';
-
-import { use, useEffect, useState } from 'react';
-import DoughnutChart, { getKategoriColor } from '@/components/charts/DoughnutChart';
+import { getKategoriColor } from '@/components/charts/DoughnutChart';
 import { formatRupiah } from '@/lib/format';
+import prisma from '@/lib/prisma';
+import KategoriChart from './KategoriChart';
 
-interface KategoriItem {
-  kategori: string;
-  total: number;
-  count: number;
-  persen: number;
-}
+export default async function KategoriPage({ params }: { params: Promise<{ userId: string }> }) {
+  const { userId: publicId } = await params;
 
-export default function KategoriPage({ params }: { params: Promise<{ userId: string }> }) {
-  const { userId } = use(params);
-  const [data, setData] = useState<KategoriItem[]>([]);
-  const [grandTotal, setGrandTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const now        = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  useEffect(() => {
-    fetch(`/api/kategori?userId=${userId}`)
-      .then((res) => res.json())
-      .then((json) => {
-        setData(json.data);
-        setGrandTotal(json.grandTotal);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [userId]);
+  const grouped = await prisma.transaksi.groupBy({
+    by: ['kategori'],
+    where: { user: { publicId }, jenis: 'keluar', tanggal: { gte: monthStart, lt: monthEnd } },
+    _sum: { nominal: true },
+    _count: { id: true },
+    orderBy: { _sum: { nominal: 'desc' } },
+  });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const grandTotal = grouped.reduce((acc, g) => acc + (Number(g._sum.nominal) || 0), 0);
+
+  const data = grouped.map((g) => ({
+    kategori: g.kategori,
+    total: Number(g._sum.nominal) || 0,
+    count: g._count.id,
+    persen: grandTotal > 0 ? Math.round(((Number(g._sum.nominal) || 0) / grandTotal) * 100) : 0,
+  }));
 
   const doughnutLabels = data.map((d) => d.kategori);
-  const doughnutData = data.map((d) => d.total);
+  const doughnutData   = data.map((d) => d.total);
   const doughnutColors = data.map((d) => getKategoriColor(d.kategori));
 
   return (
@@ -55,7 +46,7 @@ export default function KategoriPage({ params }: { params: Promise<{ userId: str
           <p className="text-3xl font-bold text-danger mb-4">{formatRupiah(grandTotal)}</p>
           <div className="h-[250px]">
             {data.length > 0 ? (
-              <DoughnutChart labels={doughnutLabels} data={doughnutData} colors={doughnutColors} />
+              <KategoriChart labels={doughnutLabels} data={doughnutData} colors={doughnutColors} />
             ) : (
               <div className="flex items-center justify-center h-full text-text-muted text-sm">
                 Belum ada data

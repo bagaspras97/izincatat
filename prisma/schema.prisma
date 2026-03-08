@@ -42,6 +42,10 @@ model Transaksi {
 
   @@index([userId])
   @@index([tanggal])
+  // Composite index untuk query dashboard/laporan/kategori: filter userId + tanggal
+  @@index([userId, tanggal])
+  // Composite index untuk query groupBy jenis + filter userId + tanggal
+  @@index([userId, jenis, tanggal])
   @@map("transaksi")
 }
 

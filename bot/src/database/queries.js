@@ -314,6 +314,134 @@ async function countTransaksiHariIni(userId) {
 }
 
 /**
+ * Ambil Set userId yang sudah mencatat transaksi hari ini (bulk, 1 query).
+ * Digunakan scheduler agar tidak N+1 query per user.
+ * @returns {Set<number>}
+ */
+async function getUserIdsWithTransaksiHariIni() {
+  const now = new Date();
+  const mulai = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const selesai = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+  const rows = await prisma.transaksi.findMany({
+    where: { tanggal: { gte: mulai, lt: selesai } },
+    select: { userId: true },
+    distinct: ['userId'],
+  });
+  return new Set(rows.map((r) => r.userId));
+}
+
+/**
+ * Ambil data weekly digest untuk semua userId sekaligus (bulk, 5 queries).
+ * Menggantikan getWeeklyDigestData yang dipanggil N-kali per user.
+ * @param {number[]} userIds
+ * @returns {Map<number, { mingguLalu: object, mingguSebelumnya: object }>}
+ */
+async function getAllWeeklyDigestData(userIds) {
+  if (userIds.length === 0) return new Map();
+
+  const now = new Date();
+  const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const startLastWeek = new Date(endDate);
+  startLastWeek.setDate(startLastWeek.getDate() - 7);
+  const startPrevWeek = new Date(startLastWeek);
+  startPrevWeek.setDate(startPrevWeek.getDate() - 7);
+
+  const [
+    masukLaluRows,
+    keluarLaluRows,
+    masukSebelumRows,
+    keluarSebelumRows,
+    countRows,
+    breakdownRows,
+  ] = await Promise.all([
+    prisma.transaksi.groupBy({
+      by: ['userId'],
+      where: { userId: { in: userIds }, jenis: 'masuk', tanggal: { gte: startLastWeek, lt: endDate } },
+      _sum: { nominal: true },
+    }),
+    prisma.transaksi.groupBy({
+      by: ['userId'],
+      where: { userId: { in: userIds }, jenis: 'keluar', tanggal: { gte: startLastWeek, lt: endDate } },
+      _sum: { nominal: true },
+    }),
+    prisma.transaksi.groupBy({
+      by: ['userId'],
+      where: { userId: { in: userIds }, jenis: 'masuk', tanggal: { gte: startPrevWeek, lt: startLastWeek } },
+      _sum: { nominal: true },
+    }),
+    prisma.transaksi.groupBy({
+      by: ['userId'],
+      where: { userId: { in: userIds }, jenis: 'keluar', tanggal: { gte: startPrevWeek, lt: startLastWeek } },
+      _sum: { nominal: true },
+    }),
+    prisma.transaksi.groupBy({
+      by: ['userId'],
+      where: { userId: { in: userIds }, tanggal: { gte: startLastWeek, lt: endDate } },
+      _count: { id: true },
+    }),
+    prisma.transaksi.groupBy({
+      by: ['userId', 'kategori'],
+      where: { userId: { in: userIds }, jenis: 'keluar', tanggal: { gte: startLastWeek, lt: endDate } },
+      _sum: { nominal: true },
+    }),
+  ]);
+
+  // Build lookup maps
+  const toSumMap = (rows) => {
+    const m = new Map();
+    for (const r of rows) m.set(r.userId, parseFloat(r._sum?.nominal) || 0);
+    return m;
+  };
+  const masukLaluMap   = toSumMap(masukLaluRows);
+  const keluarLaluMap  = toSumMap(keluarLaluRows);
+  const masukSebelumMap  = toSumMap(masukSebelumRows);
+  const keluarSebelumMap = toSumMap(keluarSebelumRows);
+
+  const countMap = new Map();
+  for (const r of countRows) countMap.set(r.userId, r._count?.id || 0);
+
+  // Group breakdown per userId, urutkan, ambil top 3
+  const breakdownMap = new Map();
+  for (const r of breakdownRows) {
+    if (!breakdownMap.has(r.userId)) breakdownMap.set(r.userId, []);
+    breakdownMap.get(r.userId).push({
+      kategori: r.kategori,
+      total: parseFloat(r._sum?.nominal) || 0,
+    });
+  }
+  for (const [uid, arr] of breakdownMap) {
+    arr.sort((a, b) => b.total - a.total);
+    breakdownMap.set(uid, arr.slice(0, 3));
+  }
+
+  // Rakit Map hasil akhir
+  const result = new Map();
+  for (const userId of userIds) {
+    const masukLalu   = masukLaluMap.get(userId)   ?? 0;
+    const keluarLalu  = keluarLaluMap.get(userId)  ?? 0;
+    const masukSebelum  = masukSebelumMap.get(userId)  ?? 0;
+    const keluarSebelum = keluarSebelumMap.get(userId) ?? 0;
+    result.set(userId, {
+      mingguLalu: {
+        mulai: startLastWeek,
+        selesai: endDate,
+        totalMasuk: masukLalu,
+        totalKeluar: keluarLalu,
+        saldo: masukLalu - keluarLalu,
+        jumlahTransaksi: countMap.get(userId) ?? 0,
+        topKategori: breakdownMap.get(userId) ?? [],
+      },
+      mingguSebelumnya: {
+        totalMasuk: masukSebelum,
+        totalKeluar: keluarSebelum,
+        saldo: masukSebelum - keluarSebelum,
+      },
+    });
+  }
+  return result;
+}
+
+/**
  * Ambil data weekly digest: minggu lalu vs dua minggu lalu.
  * Dirancang untuk dipanggil Senin pagi — "minggu lalu" = 7 hari sebelum hari ini.
  * @param {number} userId
@@ -449,7 +577,9 @@ module.exports = {
   getRiwayat,
   getActiveUsers,
   countTransaksiHariIni,
+  getUserIdsWithTransaksiHariIni,
   getWeeklyDigestData,
+  getAllWeeklyDigestData,
   countTransaksiBulanIni,
   checkBillingLimit,
   upgradeTier,

@@ -6,7 +6,7 @@
  */
 
 const cron = require('node-cron');
-const { getActiveUsers, countTransaksiHariIni, getWeeklyDigestData } = require('../database/queries');
+const { getActiveUsers, getUserIdsWithTransaksiHariIni, getAllWeeklyDigestData } = require('../database/queries');
 const { pesanReminderHarian, pesanWeeklyDigest } = require('../utils/pesan');
 const { prisma } = require('../database/prisma');
 
@@ -14,32 +14,55 @@ const { prisma } = require('../database/prisma');
 const tasks = [];
 
 // ═══════════════════════════════════════════════
+//  RATE LIMIT CONSTANTS
+// ═══════════════════════════════════════════════
+
+const DELAY_ANTAR_PESAN_MS = 3000;  // minimum jeda antar pesan (ms)
+const DELAY_JITTER_MS      = 2000;  // tambahan random agar pola tidak terdeteksi (0–2000ms)
+const BATCH_SIZE           = 10;    // setiap N pesan ambil jeda panjang
+const DELAY_BATCH_MS       = 30_000; // jeda panjang antar batch (ms)
+
+/** Jeda acak antara DELAY_ANTAR_PESAN_MS dan DELAY_ANTAR_PESAN_MS + DELAY_JITTER_MS */
+function jedaAntarPesan() {
+  return new Promise((resolve) =>
+    setTimeout(resolve, DELAY_ANTAR_PESAN_MS + Math.random() * DELAY_JITTER_MS)
+  );
+}
+
+/** Jeda panjang antar batch */
+function jedaBatch() {
+  return new Promise((resolve) => setTimeout(resolve, DELAY_BATCH_MS));
+}
+
+// ═══════════════════════════════════════════════
 //  REMINDER HARIAN
 // ═══════════════════════════════════════════════
 
 /**
  * Kirim reminder ke semua user aktif yang belum catat transaksi hari ini.
+ * Menggunakan 1 bulk query untuk filter user, bukan N+1 per user.
+ * Rate limit: 3–5 detik jitter antar pesan, jeda batch tiap 10 pesan.
  * @param {object} sock - Instance socket Baileys
  */
 async function jalankanReminderHarian(sock) {
   console.log('⏰ Reminder harian: mulai memeriksa user...');
 
   try {
-    const users = await getActiveUsers();
+    // Ambil semua user aktif dan Set userId yang sudah catat hari ini sekaligus
+    const [users, sudahCatatIds] = await Promise.all([
+      getActiveUsers(),
+      getUserIdsWithTransaksiHariIni(),
+    ]);
+
+    const usersBelumCatat = users.filter((u) => !sudahCatatIds.has(u.id));
+    const dilewati = users.length - usersBelumCatat.length;
     let terkirim = 0;
-    let dilewati = 0;
 
-    for (const user of users) {
+    console.log(`   Total: ${users.length} user, ${usersBelumCatat.length} belum catat, ${dilewati} dilewati`);
+
+    for (let i = 0; i < usersBelumCatat.length; i++) {
+      const user = usersBelumCatat[i];
       try {
-        const jumlah = await countTransaksiHariIni(user.id);
-
-        if (jumlah > 0) {
-          // Sudah ada transaksi hari ini, lewati
-          dilewati++;
-          continue;
-        }
-
-        // Belum ada transaksi — kirim reminder
         const webBase = process.env.WEB_URL;
         const webUrl = webBase ? `${webBase}/${user.publicId}/transaksi` : null;
         const pesan = pesanReminderHarian(user.nama, webUrl);
@@ -47,8 +70,15 @@ async function jalankanReminderHarian(sock) {
         await sock.sendMessage(user.nomorWa, { text: pesan });
         terkirim++;
 
-        // Jeda kecil antar pesan agar tidak flood
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Jeda batch setiap BATCH_SIZE pesan (kecuali pesan terakhir)
+        if (i < usersBelumCatat.length - 1) {
+          if (terkirim % BATCH_SIZE === 0) {
+            console.log(`⏸ Jeda batch ${DELAY_BATCH_MS / 1000}s setelah ${terkirim} pesan...`);
+            await jedaBatch();
+          } else {
+            await jedaAntarPesan();
+          }
+        }
       } catch (errUser) {
         console.error(`⚠️ Reminder gagal ke ${user.nomorWa}:`, errUser.message);
       }
@@ -66,6 +96,7 @@ async function jalankanReminderHarian(sock) {
 
 /**
  * Kirim weekly digest ke semua user aktif (Senin pagi).
+ * Semua data DB di-fetch sekaligus (bulk), lalu pesan dikirim serial dengan rate limit.
  * @param {object} sock - Instance socket Baileys
  */
 async function jalankanWeeklyDigest(sock) {
@@ -73,11 +104,22 @@ async function jalankanWeeklyDigest(sock) {
 
   try {
     const users = await getActiveUsers();
+    if (users.length === 0) {
+      console.log('ℹ️ Tidak ada user aktif, digest dilewati.');
+      return;
+    }
+
+    // Fetch semua data digest sekaligus (5 query untuk semua user, bukan 6×N)
+    const userIds = users.map((u) => u.id);
+    const digestMap = await getAllWeeklyDigestData(userIds);
+
     let terkirim = 0;
 
-    for (const user of users) {
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
       try {
-        const data = await getWeeklyDigestData(user.id);
+        const data = digestMap.get(user.id);
+        if (!data) continue;
 
         const webBase = process.env.WEB_URL;
         const webUrl = webBase ? `${webBase}/${user.publicId}/laporan` : null;
@@ -86,8 +128,14 @@ async function jalankanWeeklyDigest(sock) {
         await sock.sendMessage(user.nomorWa, { text: pesan });
         terkirim++;
 
-        // Jeda kecil antar pesan
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        if (i < users.length - 1) {
+          if (terkirim % BATCH_SIZE === 0) {
+            console.log(`⏸ Jeda batch ${DELAY_BATCH_MS / 1000}s setelah ${terkirim} pesan...`);
+            await jedaBatch();
+          } else {
+            await jedaAntarPesan();
+          }
+        }
       } catch (errUser) {
         console.error(`⚠️ Digest gagal ke ${user.nomorWa}:`, errUser.message);
       }

@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  try {
   const now = new Date();
   const bulanMulai = new Date(now.getFullYear(), now.getMonth(), 1);
   const bulanSelesai = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -53,6 +54,10 @@ export async function GET(req: NextRequest) {
   }));
 
   return NextResponse.json(data);
+  } catch (err) {
+    console.error('[admin/users GET]', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
 
 /**

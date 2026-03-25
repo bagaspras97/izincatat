@@ -112,9 +112,6 @@ export function AnimatedChat() {
           </div>
         )}
       </div>
-      <p className="text-center text-text-muted text-xs mt-4 tracking-wide">
-        Semua itu cukup dari chat WhatsApp biasa.
-      </p>
     </div>
   );
 }

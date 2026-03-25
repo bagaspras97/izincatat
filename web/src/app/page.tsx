@@ -10,7 +10,6 @@ import { GlowCard } from '@/components/landing/GlowCard';
 import {
   MessageSquare,
   Mic,
-  Tag,
   BarChart3,
   LayoutDashboard,
   ShieldCheck,
@@ -33,9 +32,9 @@ const features = [
     desc: 'Kirim voice note "habis 40rb buat bensin" — bot langsung paham, catat, dan kategorikan.',
   },
   {
-    icon: Tag,
-    title: 'Kategori Otomatis, Nol Usaha',
-    desc: 'Tulis apa saja secara natural. Sistem mengenali konteks dan memilih kategori yang tepat.',
+    icon: Zap,
+    title: 'Ngingetin Sebelum Kamu Lupa',
+    desc: 'Belum catat hari ini? Bot yang duluan kirim pesan. Tiap Senin juga ada recap mingguan biar kamu tahu uang kamu pergi ke mana.',
   },
   {
     icon: BarChart3,
@@ -50,7 +49,7 @@ const features = [
   {
     icon: ShieldCheck,
     title: 'Data Kamu, Privasi Kamu',
-    desc: 'Data tersimpan aman dan tidak dibagikan ke pihak manapun. Kamu yang pegang kendali penuh.',
+    desc: 'Data kamu disimpan terenkripsi, aman, dan cuma kamu yang bisa akses.',
   },
 ];
 
@@ -133,9 +132,9 @@ export default function LandingPage() {
       {/* ─── HERO ─── */}
       <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 pt-28 sm:pt-32">
         {/* Background glows */}
-        <div className="hero-glow w-[500px] h-[500px] bg-accent/30 -top-40 -left-40" />
-        <div className="hero-glow w-[400px] h-[400px] bg-accent/20 bottom-20 right-0" style={{ animationDelay: '3s' }} />
-        <div className="hero-glow w-[300px] h-[300px] bg-accent/15 top-1/3 right-1/4" style={{ animationDelay: '5s' }} />
+        <div className="hero-glow w-125 h-125 bg-accent/30 -top-40 -left-40" />
+        <div className="hero-glow w-100 h-100 bg-accent/20 bottom-20 right-0" style={{ animationDelay: '3s' }} />
+        <div className="hero-glow w-75 h-75 bg-accent/15 top-1/3 right-1/4" style={{ animationDelay: '5s' }} />
 
         {/* Floating icons */}
         <FloatingElements />
@@ -220,10 +219,10 @@ export default function LandingPage() {
             <div className="text-center mb-12 sm:mb-20">
               <p className="text-accent text-xs sm:text-sm font-medium tracking-widest uppercase mb-3">Fitur</p>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
-                Bukan sekadar bot catat-catat
+                Bukan sekadar bot catat keuangan
               </h2>
               <p className="text-text-muted text-sm sm:text-base max-w-xl mx-auto">
-                Fitur yang terasa ringan dipakai, tapi cukup powerful untuk kebutuhan sehari-hari.
+                Sederhana dipakai, tapi canggih di balik layar. Fitur lengkap untuk bantu kamu atur keuangan tanpa ribet.
               </p>
             </div>
           </AnimatedSection>
@@ -268,7 +267,7 @@ export default function LandingPage() {
                   <div className="step-number mx-auto md:mx-0 mb-5">{s.num}</div>
                   {/* Connector line */}
                   {i < steps.length - 1 && (
-                    <div className="hidden md:block absolute top-7 left-[72px] right-0 h-px bg-gradient-to-r from-accent/30 to-transparent" style={{ width: 'calc(100% - 56px)' }} />
+                    <div className="hidden md:block absolute top-7 left-18 right-0 h-px bg-linear-to-r from-accent/30 to-transparent" style={{ width: 'calc(100% - 56px)' }} />
                   )}
                   <h3 className="text-lg sm:text-xl font-semibold mb-2">{s.title}</h3>
                   <p className="text-text-muted text-sm leading-relaxed">{s.desc}</p>
@@ -298,7 +297,7 @@ export default function LandingPage() {
 
           {/* Terminal-like container */}
           <AnimatedSection delay={0.1}>
-            <GlowCard className="!p-0 !rounded-2xl overflow-hidden">
+            <GlowCard className="p-0! rounded-2xl! overflow-hidden">
               {/* Terminal header */}
               <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-border-subtle bg-bg-card-hover/50">
                 <Terminal size={14} className="text-accent" />
@@ -435,11 +434,11 @@ export default function LandingPage() {
       {/* ─── CTA ─── */}
       <section className="py-20 sm:py-32 px-4 sm:px-6 relative">
         {/* Background glow */}
-        <div className="hero-glow w-[400px] h-[400px] bg-accent/20 top-0 left-1/2 -translate-x-1/2" />
+        <div className="hero-glow w-100 h-100 bg-accent/20 top-0 left-1/2 -translate-x-1/2" />
 
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <AnimatedSection>
-            <GlowCard className="!py-14 sm:!py-20 !px-6 sm:!px-10">
+            <GlowCard className="py-14! sm:py-20! px-6! sm:px-10!">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 tracking-tight">
                 Masih nunggu awal bulan
                 <br />
@@ -455,7 +454,7 @@ export default function LandingPage() {
                 rel="noopener noreferrer"
                 className="group inline-flex items-center gap-2.5 bg-accent text-bg-primary font-semibold px-8 sm:px-10 py-3.5 sm:py-4 rounded-full text-sm sm:text-base hover:brightness-110 transition-all hover:shadow-xl hover:shadow-accent/25"
               >
-                Ya, Saya Mau Mulai
+                Coba Gratis Sekarang
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </a>
             </GlowCard>

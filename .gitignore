@@ -3,6 +3,7 @@ node_modules/
 
 # Environment
 .env
+bot/.env.example
 
 # Baileys auth session
 bot/auth_info_baileys/

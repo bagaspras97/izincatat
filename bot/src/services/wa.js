@@ -17,6 +17,10 @@ const https = require('node:https');
 const http = require('node:http');
 const { URL } = require('node:url');
 
+// Persistent agents — reuse TCP/TLS connections antar requests (menghindari TLS handshake berulang)
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 5 });
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 5 });
+
 // ═══════════════════════════════════════════════
 //  WABLAS HTTP HELPER
 // ═══════════════════════════════════════════════
@@ -41,6 +45,7 @@ function wablasRequest(method, path, body) {
       port: parsed.port || (isHttps ? 443 : 80),
       path: parsed.pathname + parsed.search,
       method,
+      agent: isHttps ? httpsAgent : httpAgent,
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json',

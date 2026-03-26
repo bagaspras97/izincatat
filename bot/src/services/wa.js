@@ -53,10 +53,12 @@ function wablasRequest(method, path, body) {
       },
     };
 
+    const tWablas = Date.now();
     const req = lib.request(options, (res) => {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
+        console.log(`[WA] ${method} ${parsed.pathname} → ${Date.now() - tWablas}ms (status ${res.statusCode})`);
         try { resolve(JSON.parse(data)); }
         catch (parseErr) { 
           console.debug('[WA] Response bukan JSON:', parseErr.message);

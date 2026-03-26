@@ -28,56 +28,25 @@ function getGroqClient() {
   return groqClient;
 }
 
-const SYSTEM_PROMPT = `Kamu adalah parser pesan untuk aplikasi pencatatan keuangan WhatsApp berbahasa Indonesia bernama "Izin Catat".
+const SYSTEM_PROMPT = `Parser pesan keuangan WhatsApp. Kembalikan JSON saja, tanpa penjelasan.
 
-Tugasmu HANYA menganalisis pesan user dan mengembalikan JSON. Jangan tambahkan penjelasan apapun.
+Format: {"intent":"...","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
 
-Kembalikan JSON dengan struktur PERSIS seperti ini:
-{"intent":"...","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
+Intent: catat|hapus|saldo|laporan|riwayat|bantuan|info_bot|tidak_relevan
 
-Nilai intent yang valid:
-- "catat"         → user menyebut ada uang keluar atau masuk (beli, bayar, belanja, terima, dapat, gaji, dll)
-- "hapus"         → user ingin hapus/batalkan/delete transaksi
-- "saldo"         → user tanya saldo, balance, uang tersisa, punya uang berapa
-- "laporan"       → user minta laporan, ringkasan, rekap, summary keuangan
-- "riwayat"       → user minta daftar/list transaksi
-- "bantuan"       → user minta bantuan, cara pakai, fitur apa saja, help, menu
-- "info_bot"      → user bertanya tentang bot ini (apa ini, siapa yang buat, teknologi apa, gratis tidak, aman tidak, versi berapa, kontak, dll)
-- "tidak_relevan" → tidak ada hubungan dengan keuangan sama sekali
+Rules:
+- catat: ada uang masuk/keluar. jenis="keluar"(beli/bayar/jajan) atau "masuk"(gaji/terima/dapat). nominal=angka bulat. keterangan=deskripsi singkat.
+- hapus: id=nomor transaksi
+- laporan: periode="hari"|"minggu"|"bulan" (default "bulan")
+- Konversi: 25rb/25k=25000, 1jt=1000000, 2.5jt=2500000
+- Default jenis ke "keluar" jika tidak jelas tapi ada nominal
 
-Field tambahan (isi jika ada, null jika tidak):
-- jenis    : "keluar" (pengeluaran) atau "masuk" (pemasukan) — hanya untuk intent "catat"
-- nominal  : angka saja tanpa titik/koma (contoh: 25000, tidak "25.000") — hanya untuk "catat"
-- keterangan: deskripsi singkat transaksi — hanya untuk "catat"
-- periode  : "hari", "minggu", atau "bulan" — hanya untuk "laporan", default "bulan" jika tidak disebutkan
-- id       : angka integer ID transaksi — hanya untuk "hapus"
-
-Konversi nominal:
-- "25rb" / "25ribu" / "25k" / "25.000" → 25000
-- "1jt" / "1juta" / "1.000.000" → 1000000
-- "2.5jt" / "2,5 juta" → 2500000
-- "500" dengan konteks keuangan → 500
-
-Penentuan jenis:
-- "keluar" → beli, bayar, belanja, jajan, makan, nongkrong, isi, transfer keluar, dll
-- "masuk"  → terima, gaji, dapat, transfer masuk, dibayar, cashback, bonus, dll
-- Default ke "keluar" jika tidak jelas tapi ada nominal
-
-Contoh input → output:
-"kemarin beli kopi 25rb" → {"intent":"catat","jenis":"keluar","nominal":25000,"keterangan":"beli kopi","periode":null,"id":null}
-"tadi terima gaji 5jt" → {"intent":"catat","jenis":"masuk","nominal":5000000,"keterangan":"gaji","periode":null,"id":null}
-"makan siang 35000" → {"intent":"catat","jenis":"keluar","nominal":35000,"keterangan":"makan siang","periode":null,"id":null}
-"isi bensin 150rb" → {"intent":"catat","jenis":"keluar","nominal":150000,"keterangan":"isi bensin","periode":null,"id":null}
-"hapus transaksi 42" → {"intent":"hapus","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":42}
+Contoh:
+"beli kopi 25rb" → {"intent":"catat","jenis":"keluar","nominal":25000,"keterangan":"beli kopi","periode":null,"id":null}
+"terima gaji 5jt" → {"intent":"catat","jenis":"masuk","nominal":5000000,"keterangan":"gaji","periode":null,"id":null}
 "hapus nomor 7" → {"intent":"hapus","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":7}
-"berapa saldo aku?" → {"intent":"saldo","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
-"minta laporan bulan ini" → {"intent":"laporan","jenis":null,"nominal":null,"keterangan":null,"periode":"bulan","id":null}
 "rekap minggu ini" → {"intent":"laporan","jenis":null,"nominal":null,"keterangan":null,"periode":"minggu","id":null}
-"list transaksi" → {"intent":"riwayat","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
-"cara pakai bot ini gimana?" → {"intent":"bantuan","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
-"bot ini buatan siapa?" → {"intent":"info_bot","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
-"apakah data saya aman?" → {"intent":"info_bot","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}
-"halo selamat pagi" → {"intent":"tidak_relevan","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}`;
+"halo" → {"intent":"tidak_relevan","jenis":null,"nominal":null,"keterangan":null,"periode":null,"id":null}`;
 
 /**
  * Deteksi intent dari pesan natural language.
@@ -90,7 +59,7 @@ async function detectIntent(pesan) {
     const groq = getGroqClient();
 
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'llama-3.1-8b-instant',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: pesan },

@@ -5,7 +5,7 @@
  */
 
 // Load environment variables
-require('dotenv').config();
+require('dotenv').config({ override: true });
 
 const { disconnect } = require('./src/database/prisma');
 const { stopScheduler } = require('./src/services/scheduler');

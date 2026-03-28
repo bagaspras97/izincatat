@@ -13,7 +13,7 @@ export default function NotFound() {
           href="/"
           className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-bg-primary font-semibold rounded-xl hover:opacity-90 transition-opacity"
         >
-          ← Kembali ke Beranda
+          ← Kembali ke Halaman Utama
         </Link>
       </div>
     </div>

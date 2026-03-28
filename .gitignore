@@ -30,6 +30,10 @@ dist/
 build/
 .next/
 
+# Docs internal
+roadmap.html
+PM2_GUIDE.md
+
 # Charts temp
 *.png
 !bot/src/services/*.png

@@ -129,9 +129,9 @@
     <p style="font-size:14pt; color:#1a56a0; margin-bottom:40pt;">Asisten Keuangan Pribadi via WhatsApp</p>
 
     <div style="background:#f0f5ff; border:1px solid #b8d0f5; padding:16pt 24pt; display:inline-block; text-align:left; width:70%;">
-      <p><strong>Versi Dokumen</strong>&nbsp;&nbsp; 1.0</p>
-      <p><strong>Tanggal</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Maret 2026</p>
-      <p><strong>Status</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Draft</p>
+      <p><strong>Versi Dokumen</strong>&nbsp;&nbsp; 1.1</p>
+      <p><strong>Tanggal</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Maret 2026 (Updated 3 Maret)</p>
+      <p><strong>Status</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Active — Target Launch 1 April 2026</p>
       <p><strong>Dibuat oleh</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tim Izin Catat</p>
     </div>
   </div>
@@ -170,9 +170,9 @@
       <td>Deploy di Vercel — izincatat.vercel.app</td>
     </tr>
     <tr>
-      <td>Database (Neon PostgreSQL)</td>
+      <td>Database (Supabase PostgreSQL)</td>
       <td><span class="badge badge-done">✓ Live</span></td>
-      <td>Free tier, server Singapore</td>
+      <td>Migrasi dari Neon selesai — pooler + pgBouncer aktif</td>
     </tr>
     <tr>
       <td>AI Transkripsi Voice (Groq Whisper)</td>
@@ -185,6 +185,11 @@
       <td>Kategori transaksi ditentukan otomatis oleh AI</td>
     </tr>
     <tr>
+      <td>AI Intent Detection (Groq llama-3.3-70b)</td>
+      <td><span class="badge badge-done">✓ Live</span></td>
+      <td>Pesan natural language diparse otomatis — tidak perlu format kaku</td>
+    </tr>
+    <tr>
       <td>Scheduler Reminder</td>
       <td><span class="badge badge-done">✓ Live</span></td>
       <td>Reminder harian 20.00 + Weekly digest Senin 08.00</td>
@@ -192,13 +197,13 @@
   </table>
 
   <!-- FASE 1 -->
-  <h2>Fase 1 — Penguatan Fondasi</h2>
+  <h2>Fase 1 — Penguatan Fondasi ✅ SELESAI</h2>
   <p class="section-intro">
-    Fokus pada stabilitas, pengalihan database ke provider yang lebih scalable, dan penerapan AI intent detection agar bot terasa lebih natural.
+    Fokus pada stabilitas, pengalihan database ke provider yang lebih scalable, dan penerapan AI intent detection agar bot terasa lebih natural. <strong>Semua item di fase ini telah selesai per 3 Maret 2026.</strong>
   </p>
 
   <h3>1.1 Migrasi Database: Neon → Supabase</h3>
-  <p><strong>Prioritas:</strong> <span class="badge badge-now">Segera</span></p>
+  <p><strong>Status:</strong> <span class="badge badge-done">✓ Selesai</span></p>
   <p><strong>Alasan migrasi:</strong></p>
   <ul>
     <li>Supabase menyediakan Auth, Storage, dan Realtime dalam satu platform</li>
@@ -214,7 +219,7 @@
   </ul>
 
   <h3>1.2 AI Intent Detection</h3>
-  <p><strong>Prioritas:</strong> <span class="badge badge-now">Segera</span></p>
+  <p><strong>Status:</strong> <span class="badge badge-done">✓ Selesai</span></p>
   <p><strong>Perubahan pengalaman user:</strong></p>
   <table>
     <tr>
@@ -235,10 +240,69 @@
     </tr>
   </table>
   <p><strong>Implementasi:</strong> Menggunakan Groq LLM (llama-3.3-70b) untuk klasifikasi intent sebelum routing ke handler. Biaya tambahan: Rp 0 (masih dalam free tier untuk &lt;300 user aktif).</p>
+  <p><strong>Bonus fitur:</strong> Intent <code>info_bot</code> ditambahkan — user bisa tanya "bot ini buatan siapa?", "apakah data aman?", dll. dan bot menjawab otomatis.</p>
+
+  <!-- PRE-LAUNCH -->
+  <h2>Pre-Launch Checklist — Target: 1 April 2026</h2>
+  <p class="section-intro">
+    Pekerjaan tersisa sebelum full launch ke publik. Semua item harus selesai sebelum akhir Maret 2026.
+  </p>
+
+  <table>
+    <tr>
+      <th>Item</th>
+      <th>Estimasi</th>
+      <th>Status</th>
+    </tr>
+    <tr>
+      <td>Nomor WA dedicated (SIM card baru)</td>
+      <td>1 hari</td>
+      <td><span class="badge badge-now">Perlu dilakukan</span></td>
+    </tr>
+    <tr>
+      <td>Scan ulang QR dengan nomor baru <strong>+ migrasi ke Fonnte/Wablas</strong></td>
+      <td>1 hari</td>
+      <td><span class="badge badge-now">Perlu dilakukan</span></td>
+    </tr>
+    <tr>
+      <td>Modul Super App: Jadwal, Todo, Catatan, Habit</td>
+      <td>1–2 minggu</td>
+      <td><span class="badge badge-now">Perlu dilakukan</span></td>
+    </tr>
+    <tr>
+      <td>Auth (Supabase) + sistem user/subscription</td>
+      <td>1 minggu</td>
+      <td><span class="badge badge-now">Perlu dilakukan</span></td>
+    </tr>
+    <tr>
+      <td>Billing otomatis + payment gateway (Midtrans/Xendit)</td>
+      <td>1 minggu</td>
+      <td><span class="badge badge-now">Perlu dilakukan</span></td>
+    </tr>
+    <tr>
+      <td>Final testing end-to-end (catat, hapus, laporan, voice, AI)</td>
+      <td>2 hari</td>
+      <td><span class="badge badge-now">Perlu dilakukan</span></td>
+    </tr>
+    <tr>
+      <td>Landing page final + tombol "Mulai Gratis"</td>
+      <td>1 hari</td>
+      <td><span class="badge badge-now">Perlu dilakukan</span></td>
+    </tr>
+    <tr>
+      <td>Update pesan bantuan agar menyebutkan fitur natural language</td>
+      <td>1 jam</td>
+      <td><span class="badge badge-now">Perlu dilakukan</span></td>
+    </tr>
+  </table>
+
+  <div class="highlight-box">
+    <strong>🚀 Target Launch:</strong> 1 April 2026 — <strong>Full launch</strong> dengan semua fitur lengkap + billing aktif. Bukan soft launch — semua modul, pricing, dan payment gateway sudah live.
+  </div>
 
   <!-- FASE 2 -->
   <div class="page-break"></div>
-  <h2>Fase 2 — Migrasi Provider WhatsApp</h2>
+  <h2>Fase 2 — Migrasi Provider WhatsApp <span style="font-size:11pt;font-weight:normal">(Maret 2026)</span></h2>
   <p class="section-intro">
     Beralih dari Baileys ke provider resmi agar bot tidak bergantung pada perangkat pribadi dan lebih stabil untuk production.
   </p>
@@ -290,13 +354,13 @@
   </div>
 
   <!-- FASE 3 -->
-  <h2>Fase 3 — Super App: Personal Assistant</h2>
+  <h2>Fase 3 — Super App: Personal Assistant <span style="font-size:11pt;font-weight:normal">(Maret 2026)</span></h2>
   <p class="section-intro">
     Memperluas fungsi bot dari pencatat keuangan menjadi asisten pribadi lengkap. Setiap modul ditambahkan secara bertahap tanpa mengganggu fitur yang sudah ada.
   </p>
 
   <h3>3.1 Modul Jadwal & Reminder</h3>
-  <p><strong>Prioritas:</strong> <span class="badge badge-soon">Segera setelah Fase 2</span></p>
+  <p><strong>Prioritas:</strong> <span class="badge badge-now">Bulan ini (Maret 2026)</span></p>
   <ul>
     <li>Simpan jadwal kegiatan: <em>"besok jam 9 meeting klien"</em></li>
     <li>Reminder otomatis H-1 dan hari-H via scheduler (sudah ada infrastrukturnya)</li>
@@ -324,7 +388,7 @@
 
   <!-- FASE 4 -->
   <div class="page-break"></div>
-  <h2>Fase 4 — Monetisasi & Growth</h2>
+  <h2>Fase 4 — Monetisasi & Growth <span style="font-size:11pt;font-weight:normal">(Maret 2026)</span></h2>
 
   <h3>4.1 Sistem Autentikasi</h3>
   <p><strong>Prioritas:</strong> <span class="badge badge-future">Jangka Menengah</span></p>
@@ -352,31 +416,7 @@
   <!-- STRUKTUR HARGA -->
   <h2>Rencana Harga</h2>
 
-  <h3>Fase 1–2 (Sekarang – Q2 2026)</h3>
-  <table>
-    <tr>
-      <th>Tier</th>
-      <th>Harga</th>
-      <th>Fitur</th>
-    </tr>
-    <tr>
-      <td><strong>Trial</strong></td>
-      <td>Gratis 30 hari</td>
-      <td>Semua fitur aktif</td>
-    </tr>
-    <tr>
-      <td><strong>Basic</strong></td>
-      <td>Rp 15.000/bulan</td>
-      <td>Hingga 500 transaksi/bulan, semua fitur keuangan</td>
-    </tr>
-    <tr>
-      <td><strong>Pro</strong></td>
-      <td>Rp 29.000/bulan</td>
-      <td>Unlimited transaksi, reminder, digest mingguan, dashboard penuh</td>
-    </tr>
-  </table>
-
-  <h3>Fase 3+ (Super App — Q3 2026 dst.)</h3>
+  <h3>Launch (April 2026) & Seterusnya</h3>
   <table>
     <tr>
       <th>Tier</th>
@@ -386,29 +426,56 @@
     <tr>
       <td><strong>Gratis</strong></td>
       <td>Rp 0</td>
-      <td>Keuangan, maks 50 transaksi/bulan</td>
-    </tr>
-    <tr>
-      <td><strong>Starter</strong></td>
-      <td>Rp 29.000/bulan</td>
-      <td>Keuangan unlimited + jadwal + todo</td>
+      <td>Maks 50 transaksi/bulan, fitur keuangan dasar</td>
     </tr>
     <tr>
       <td><strong>Pro</strong></td>
-      <td>Rp 49.000/bulan</td>
-      <td>Semua modul + catatan + habit tracker</td>
+      <td>Rp 25.000/bulan</td>
+      <td>Unlimited transaksi, semua fitur (keuangan, jadwal, todo, catatan, habit, reminder, dashboard penuh)</td>
     </tr>
     <tr>
       <td><strong>Pro Couple</strong></td>
-      <td>Rp 69.000/bulan</td>
-      <td>2 akun, shared data, dashboard bersama</td>
+      <td>Rp 35.000/bulan</td>
+      <td>2 akun terhubung, shared data, dashboard bersama — hemat Rp 15.000 vs 2× Pro</td>
     </tr>
     <tr>
       <td><strong>Pro Tahunan</strong></td>
-      <td>Rp 149.000/tahun</td>
-      <td>Setara Rp 12.400/bulan — hemat 57%</td>
+      <td>Rp 179.000/tahun</td>
+      <td>Setara Rp 14.900/bulan — hemat 40% vs bulanan</td>
+    </tr>
+    <tr>
+      <td><strong>Couple Tahunan</strong></td>
+      <td>Rp 249.000/tahun</td>
+      <td>2 akun, setara Rp 20.750/bulan — hemat 41% vs couple bulanan</td>
     </tr>
   </table>
+
+  <h3>Early Bird — Khusus April s.d. Juni 2026 (3 Bulan Pertama)</h3>
+  <p class="section-intro">Diskon khusus untuk user yang mendaftar di bulan-bulan pertama setelah launch. Harga berlaku untuk 3 bulan pertama masa berlangganan, setelah itu otomatis beralih ke harga normal.</p>
+  <table>
+    <tr>
+      <th>Tier</th>
+      <th>Harga Early Bird</th>
+      <th>Harga Normal</th>
+      <th>Hemat</th>
+    </tr>
+    <tr>
+      <td><strong>Pro</strong></td>
+      <td>Rp 15.000/bulan <em>(3 bln pertama)</em></td>
+      <td>Rp 25.000/bulan</td>
+      <td>Rp 10.000 (40% off)</td>
+    </tr>
+    <tr>
+      <td><strong>Pro Couple</strong></td>
+      <td>Rp 22.000/bulan <em>(3 bln pertama)</em></td>
+      <td>Rp 35.000/bulan</td>
+      <td>Rp 13.000 (37% off)</td>
+    </tr>
+  </table>
+
+  <div class="highlight-box">
+    <strong>Strategi harga:</strong> Maksimal Rp 25.000/bulan per orang untuk <em>semua</em> fitur — lebih murah dari segelas kopi, lebih berguna sepanjang bulan. Early bird memberikan insentif kuat untuk daftar di hari-hari pertama launch.
+  </div>
 
   <!-- PROYEKSI REVENUE -->
   <h2>Proyeksi Revenue</h2>
@@ -422,34 +489,174 @@
     </tr>
     <tr>
       <td>50 user</td>
-      <td>Rp 29.000</td>
-      <td>Rp 1.450.000</td>
-      <td>Rp 265.000</td>
-      <td>~82%</td>
+      <td>Rp 20.000</td>
+      <td>Rp 1.000.000</td>
+      <td>Rp 165.000</td>
+      <td>~84%</td>
     </tr>
     <tr>
       <td>100 user</td>
-      <td>Rp 32.000</td>
-      <td>Rp 3.200.000</td>
+      <td>Rp 21.000</td>
+      <td>Rp 2.100.000</td>
       <td>Rp 315.000</td>
-      <td>~90%</td>
+      <td>~85%</td>
     </tr>
     <tr>
       <td>300 user</td>
-      <td>Rp 39.000</td>
-      <td>Rp 11.700.000</td>
+      <td>Rp 22.000</td>
+      <td>Rp 6.600.000</td>
       <td>Rp 500.000</td>
-      <td>~96%</td>
+      <td>~92%</td>
     </tr>
     <tr>
       <td>1.000 user</td>
-      <td>Rp 39.000</td>
-      <td>Rp 39.000.000</td>
+      <td>Rp 22.000</td>
+      <td>Rp 22.000.000</td>
       <td>Rp 1.500.000</td>
-      <td>~96%</td>
+      <td>~93%</td>
     </tr>
   </table>
-  <p class="text-muted">* Biaya operasional mencakup VPS + provider WA + DB paid tier jika dibutuhkan</p>
+  <p class="text-muted">* ARPU mempertimbangkan mix free, Pro bulanan, Pro tahunan, dan Couple. Biaya operasional mencakup VPS + provider WA + DB paid tier jika dibutuhkan.</p>
+
+  <!-- BIAYA OPERASIONAL -->
+  <h2>Biaya Operasional</h2>
+  <p class="section-intro">Rincian seluruh pengeluaran yang dibutuhkan untuk menjalankan Izin Catat. Angka dalam IDR, kurs 1 USD = Rp 16.000.</p>
+
+  <h3>Infrastruktur Tetap</h3>
+  <table>
+    <tr>
+      <th>Item</th>
+      <th>Biaya</th>
+      <th>Periode</th>
+      <th>Keterangan</th>
+    </tr>
+    <tr>
+      <td>VPS Rumahweb KVM XS</td>
+      <td><strong>Rp 60.000</strong> (bln 1)<br><strong>Rp 120.000</strong> (bln 2+)</td>
+      <td>/bulan</td>
+      <td>Bot runtime + PM2, Ubuntu 22.04, 1 vCPU, 2GB RAM — promo bulan pertama</td>
+    </tr>
+    <tr>
+      <td>Domain (izincatat.com)</td>
+      <td><strong>Rp 12.500</strong></td>
+      <td>/bulan</td>
+      <td>~Rp 150.000/tahun, renew tahunan</td>
+    </tr>
+    <tr>
+      <td>Supabase PostgreSQL</td>
+      <td><strong>Rp 0</strong></td>
+      <td>/bulan</td>
+      <td>Free tier: 500MB DB, 5GB bandwidth, 2 project — cukup untuk &lt;500 user</td>
+    </tr>
+    <tr>
+      <td>Vercel (Web Dashboard)</td>
+      <td><strong>Rp 0</strong></td>
+      <td>/bulan</td>
+      <td>Hobby plan gratis — Next.js deploy, 100GB bandwidth</td>
+    </tr>
+    <tr>
+      <td>Groq API (AI + Whisper)</td>
+      <td><strong>Rp 0</strong></td>
+      <td>/bulan</td>
+      <td>Free tier: 14.400 req/hari, cukup untuk ratusan user aktif</td>
+    </tr>
+    <tr>
+      <td>GitHub (source control)</td>
+      <td><strong>Rp 0</strong></td>
+      <td>/bulan</td>
+      <td>Free untuk public repo</td>
+    </tr>
+    <tr style="background-color: #e8f4e8;">
+      <td><strong>Total Infrastruktur Tetap</strong></td>
+      <td><strong>Rp 72.500</strong> (bln 1)<br><strong>Rp 132.500</strong> (bln 2+)</td>
+      <td>/bulan</td>
+      <td>Berlaku selama user &lt;500 dan WA masih via Baileys</td>
+    </tr>
+  </table>
+
+  <h3>Biaya Variabel (Skala)</h3>
+  <table>
+    <tr>
+      <th>Item</th>
+      <th>Biaya</th>
+      <th>Periode</th>
+      <th>Trigger</th>
+    </tr>
+    <tr>
+      <td>Provider WA — Fonnte</td>
+      <td><strong>Rp 100.000</strong></td>
+      <td>/bulan</td>
+      <td>Setelah migrasi dari Baileys (April 2026) — nomor dedicated, lebih stabil</td>
+    </tr>
+    <tr>
+      <td>Provider WA — Wablas (alternatif)</td>
+      <td><strong>Rp 150.000</strong></td>
+      <td>/bulan</td>
+      <td>Lebih fitur, cocok jika user &gt;200</td>
+    </tr>
+    <tr>
+      <td>Supabase Pro</td>
+      <td><strong>Rp 400.000</strong></td>
+      <td>/bulan</td>
+      <td>Jika DB &gt;500MB atau butuh daily backup otomatis (~$25/bln)</td>
+    </tr>
+    <tr>
+      <td>Vercel Pro</td>
+      <td><strong>Rp 320.000</strong></td>
+      <td>/bulan</td>
+      <td>Jika traffic web &gt;100GB/bln atau butuh analytics lanjutan (~$20/bln)</td>
+    </tr>
+    <tr>
+      <td>Payment Gateway (Midtrans/Xendit)</td>
+      <td><strong>0,7–1,5%</strong></td>
+      <td>/transaksi</td>
+      <td>Tanpa biaya setup/bulanan — hanya fee per pembayaran berhasil</td>
+    </tr>
+    <tr>
+      <td>Email transaksional (Resend/Mailgun)</td>
+      <td><strong>Rp 0</strong></td>
+      <td>/bulan</td>
+      <td>Free tier: 3.000 email/bulan, cukup untuk notifikasi billing</td>
+    </tr>
+  </table>
+
+  <h3>Proyeksi Biaya vs Skala User</h3>
+  <table>
+    <tr>
+      <th>Fase</th>
+      <th>Jumlah User</th>
+      <th>Biaya/Bulan</th>
+      <th>Komponen Tambahan</th>
+    </tr>
+    <tr>
+      <td><strong>Launch (April 2026)</strong></td>
+      <td>&lt;50 user</td>
+      <td><strong>Rp 72.500</strong> (bln 1)<br><strong>Rp 132.500</strong> (bln 2+)</td>
+      <td>VPS + Domain saja</td>
+    </tr>
+    <tr>
+      <td><strong>Fase 2 (setelah WA provider)</strong></td>
+      <td>50–200 user</td>
+      <td><strong>~Rp 232.500</strong></td>
+      <td>+ WA provider Fonnte Rp 100k</td>
+    </tr>
+    <tr>
+      <td><strong>Fase pertumbuhan</strong></td>
+      <td>200–500 user</td>
+      <td><strong>~Rp 285.000</strong></td>
+      <td>+ WA Wablas Rp 150k + margin fee payment gateway</td>
+    </tr>
+    <tr>
+      <td><strong>Fase skala</strong></td>
+      <td>&gt;500 user</td>
+      <td><strong>~Rp 1.000.000</strong></td>
+      <td>+ Supabase Pro Rp 400k + Vercel Pro Rp 320k</td>
+    </tr>
+  </table>
+
+  <div class="highlight-box">
+    <strong>Break-even point:</strong> Bulan pertama biaya Rp 72.500 — cukup <strong>3 user Pro</strong> untuk BEP. Bulan berikutnya Rp 132.500 — butuh <strong>6 user Pro</strong>. Setelah migrasi WA provider (~Rp 232.500/bulan), break-even di <strong>10 user Pro</strong>.
+  </div>
 
   <!-- TIMELINE -->
   <div class="page-break"></div>
@@ -461,33 +668,28 @@
       <th>Status</th>
     </tr>
     <tr>
-      <td><strong>Maret 2026</strong></td>
-      <td>Migrasi Supabase + AI Intent Detection</td>
+      <td><strong>3 Maret 2026</strong></td>
+      <td>Migrasi Supabase + AI Intent Detection + info_bot</td>
+      <td><span class="badge badge-done">✓ Selesai</span></td>
+    </tr>
+    <tr>
+      <td><strong>Maret 2026 (Minggu 2–4)</strong></td>
+      <td>Super App + Billing + Auth + Migrasi WA Provider + Dual Akun + Pre-launch testing</td>
       <td><span class="badge badge-now">In Progress</span></td>
     </tr>
     <tr>
-      <td><strong>April 2026</strong></td>
-      <td>Migrasi provider WA (Fonnte/Wablas) + nomor bot dedicated</td>
+      <td><strong>1 April 2026 🚀</strong></td>
+      <td><strong>FULL LAUNCH — Semua fitur live, billing aktif, nomor WA dedicated</strong></td>
+      <td><span class="badge badge-now">Target</span></td>
+    </tr>
+    <tr>
+      <td><strong>April–Mei 2026</strong></td>
+      <td>Growth: onboarding flow, referral program, marketing</td>
       <td><span class="badge badge-soon">Planned</span></td>
     </tr>
     <tr>
-      <td><strong>Mei–Juni 2026</strong></td>
-      <td>Modul Jadwal & Reminder + Todo list</td>
-      <td><span class="badge badge-future">Planned</span></td>
-    </tr>
-    <tr>
-      <td><strong>Juli 2026</strong></td>
-      <td>Modul Catatan Bebas + Habit Tracker</td>
-      <td><span class="badge badge-future">Planned</span></td>
-    </tr>
-    <tr>
-      <td><strong>Agustus 2026</strong></td>
-      <td>Auth (Supabase) + Billing otomatis</td>
-      <td><span class="badge badge-future">Planned</span></td>
-    </tr>
-    <tr>
-      <td><strong>Q4 2026</strong></td>
-      <td>Fitur Dual Akun (Pasangan) + landing page revamp</td>
+      <td><strong>Q3 2026</strong></td>
+      <td>Skalabilitas: multi-bahasa, ekspansi regional</td>
       <td><span class="badge badge-future">Planned</span></td>
     </tr>
   </table>
@@ -508,7 +710,7 @@
     <tr>
       <td>WA Provider</td>
       <td>Baileys → Fonnte/Wablas</td>
-      <td>Migrasi di Fase 2</td>
+      <td>Migrasi ke Fonnte/Wablas selesai Maret 2026</td>
     </tr>
     <tr>
       <td>Web Dashboard</td>

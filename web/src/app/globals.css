@@ -12,8 +12,8 @@
   --text-primary: #1C1C1A;
   --text-secondary: #4A4A45;
   --text-muted: #8C8C84;
-  --accent: #4A7A2E;
-  --accent-dim: rgba(74, 122, 46, 0.10);
+  --accent: #5A9A32;
+  --accent-dim: rgba(90, 154, 50, 0.10);
   --success: #2E8B57;
   --danger: #C53030;
   --info: #2B6CB0;
@@ -31,9 +31,9 @@
   --text-primary: #F0EDE6;
   --text-secondary: #A8A59E;
   --text-muted: #6B6963;
-  --accent: #B8E847;
-  --accent-dim: rgba(184, 232, 71, 0.12);
-  --success: #5EE89C;
+  --accent: #7EC843;
+  --accent-dim: rgba(126, 200, 67, 0.12);
+  --success: #4DC87A;
   --danger: #F87171;
   --info: #6CB4EE;
   --card-shadow-hover: rgba(0, 0, 0, 0.35);

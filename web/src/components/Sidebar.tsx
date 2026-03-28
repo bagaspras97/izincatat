@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import { Logo } from './Logo';
 
 const NAV_ITEMS = [
   { segment: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -74,6 +75,11 @@ export default function Sidebar() {
         >
           <X size={20} />
         </button>
+
+        {/* Logo */}
+        <div className="hidden lg:flex w-11 h-11 items-center justify-center mb-2">
+          <Logo size={36} className="rounded-xl" />
+        </div>
 
         {/* Nav items */}
         <nav className="flex flex-col gap-1 flex-1">

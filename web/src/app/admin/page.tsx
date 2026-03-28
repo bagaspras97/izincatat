@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Logo } from '@/components/Logo';
 import {
   Users, Receipt, Settings, LogOut, Search, Plus, Pencil, Trash2,
   Check, X, Shield, Menu, UserCheck, Crown, Heart, TrendingUp,
@@ -54,8 +56,28 @@ const NAV_ITEMS: { id: Tab; label: string; icon: typeof Users }[] = [
 ];
 
 export default function AdminPage() {
+  const router = useRouter();
   const [secret, setSecret] = useState('');
   const [authed, setAuthed] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+
+  // Restore session dari sessionStorage saat mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem('admin_secret');
+    if (!saved) { setInitializing(false); return; }
+    setSecret(saved);
+    // Verifikasi secret masih valid
+    fetch('/api/admin/users', { headers: { 'x-admin-secret': saved } })
+      .then(async (res) => {
+        if (!res.ok) { sessionStorage.removeItem('admin_secret'); return; }
+        setUsers(await res.json());
+        setAuthed(true);
+        await Promise.all([fetchPricing(saved), fetchExpenses(saved)]);
+      })
+      .catch(() => sessionStorage.removeItem('admin_secret'))
+      .finally(() => setInitializing(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [activeTab, setActiveTab] = useState<Tab>('users');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -128,6 +150,7 @@ export default function AdminPage() {
       if (!res.ok) { setError('Gagal ambil data.'); return; }
       setUsers(await res.json());
       setAuthed(true);
+      sessionStorage.setItem('admin_secret', secret);
       await Promise.all([fetchPricing(secret), fetchExpenses(secret)]);
     } catch {
       setError('Network error.');
@@ -143,11 +166,13 @@ export default function AdminPage() {
   };
 
   const handleLogout = () => {
+    sessionStorage.removeItem('admin_secret');
     setAuthed(false);
     setSecret('');
     setUsers([]);
     setExpenses([]);
     setActiveTab('users');
+    router.push('/');
   };
 
   // ─── Users CRUD ───
@@ -275,6 +300,14 @@ export default function AdminPage() {
   // ═══════════════════════════════════════════════════════
   // LOGIN SCREEN
   // ═══════════════════════════════════════════════════════
+  if (initializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg-primary">
+        <Loader2 size={28} className="animate-spin text-text-muted" />
+      </div>
+    );
+  }
+
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-primary px-4">
@@ -370,6 +403,11 @@ export default function AdminPage() {
         >
           <X size={20} />
         </button>
+
+        {/* Logo */}
+        <div className="mb-2 hidden lg:flex items-center justify-center">
+          <Logo size={28} className="rounded-lg" />
+        </div>
 
         {/* Nav items */}
         <nav className="flex flex-col gap-1 flex-1">

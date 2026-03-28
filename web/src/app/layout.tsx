@@ -17,8 +17,8 @@ export const metadata: Metadata = {
   title: "Izin Catat",
   description: "Catat keuangan pribadi lewat WhatsApp. Gratis, simpel, dan cepat.",
   icons: {
-    icon: "/logo.svg",
-    apple: "/logo.svg",
+    icon: "/icon.svg",
+    apple: "/icon.svg",
   },
 };
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Logo } from '@/components/Logo';
 import { AnimatedSection } from '@/components/landing/AnimatedSection';
 import { FloatingElements } from '@/components/landing/FloatingElements';
 import { TypingText } from '@/components/landing/TypingText';
@@ -15,10 +16,20 @@ import {
   ShieldCheck,
   ArrowRight,
   Zap,
-  Terminal,
+  Users,
+  ArrowLeftRight,
+  TrendingUp,
+  ArrowUpRight,
+  ArrowDownRight,
+  PieChart,
+  Check,
 } from 'lucide-react';
 
 /* ─── DATA ─── */
+
+const WA_NUMBER = '628211933818';
+const WA_LINK = `https://wa.me/${WA_NUMBER}?text=Halo`;
+const waLink = (text: string) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
 
 const features = [
   {
@@ -49,7 +60,7 @@ const features = [
   {
     icon: ShieldCheck,
     title: 'Data Kamu, Privasi Kamu',
-    desc: 'Data kamu disimpan terenkripsi, aman, dan cuma kamu yang bisa akses.',
+    desc: 'Semua catatan keuangan dienkripsi end-to-end. Hanya kamu yang bisa akses datamu.',
   },
 ];
 
@@ -71,16 +82,14 @@ const steps = [
   },
 ];
 
-const commands = [
-  { cmd: 'catat keluar nasi goreng 25rb', desc: 'Catat pengeluaran dengan keterangan' },
-  { cmd: 'catat masuk gaji 5jt', desc: 'Catat pemasukan' },
-  { cmd: 'saldo', desc: 'Cek berapa sisa saldo kamu' },
-  { cmd: 'laporan', desc: 'Ringkasan keuangan bulan ini' },
-  { cmd: 'riwayat', desc: 'Lihat 10 transaksi terakhir' },
-  { cmd: 'hapus 1', desc: 'Hapus transaksi yang salah catat' },
+const exampleMessages = [
+  { text: 'catat keluar nasi goreng 25rb', desc: 'Catat pengeluaran' },
+  { text: 'catat masuk gaji 5jt', desc: 'Catat pemasukan' },
+  { text: 'saldo', desc: 'Cek sisa saldo kamu' },
+  { text: 'laporan', desc: 'Ringkasan keuangan bulan ini' },
+  { text: 'riwayat', desc: 'Lihat 10 transaksi terakhir' },
+  { text: 'hapus 1', desc: 'Hapus transaksi yang salah' },
 ];
-
-const WA_LINK = 'https://wa.me/6281234567890?text=Halo';
 
 function formatHarga(n: number): string {
   if (n === 0) return 'Gratis';
@@ -89,11 +98,17 @@ function formatHarga(n: number): string {
   return n.toLocaleString('id-ID');
 }
 
+function formatStat(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`;
+  return `${n}+`;
+}
+
 /* ─── COMPONENT ─── */
 
 export default function LandingPage() {
   const [hargaPro, setHargaPro] = useState(15000);
   const [hargaCouple, setHargaCouple] = useState(29000);
+  const [stats, setStats] = useState({ users: 0, transactions: 0 });
 
   useEffect(() => {
     fetch('/api/settings')
@@ -105,6 +120,13 @@ export default function LandingPage() {
         }
       })
       .catch(() => {});
+
+    fetch('/api/stats')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d) setStats(d);
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -112,9 +134,12 @@ export default function LandingPage() {
       {/* ─── NAVBAR ─── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border-card/50 bg-bg-primary/60 backdrop-blur-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-          <span className="text-sm sm:text-base tracking-tight">
-            <span className="font-light text-text-secondary">Izin</span><span className="font-black text-text-primary">Catat</span>
-          </span>
+          <div className="flex items-center gap-2.5">
+            <Logo size={28} />
+            <span className="text-sm sm:text-base tracking-tight">
+              <span className="font-light text-text-secondary">Izin</span><span className="font-black text-text-primary">Catat</span>
+            </span>
+          </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <a
@@ -192,25 +217,47 @@ export default function LandingPage() {
       {/* ─── SECTION DIVIDER ─── */}
       <div className="section-divider max-w-4xl mx-auto" />
 
-      {/* ─── DEMO CHAT ─── */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
-          <AnimatedSection>
-            <div className="text-center mb-10 sm:mb-16">
-              <p className="text-accent text-xs sm:text-sm font-medium tracking-widest uppercase mb-3">Live Demo</p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
-                Seperti ngobrol biasa
-              </h2>
-            </div>
-          </AnimatedSection>
+      {/* ─── SOCIAL PROOF ─── */}
+      {(stats.users > 0 || stats.transactions > 0) && (
+        <section className="py-16 sm:py-20 px-4 sm:px-6">
+          <div className="max-w-4xl mx-auto">
+            <AnimatedSection>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-dim mb-3">
+                    <Users size={18} className="text-accent" />
+                  </div>
+                  <p className="text-2xl sm:text-3xl font-black text-text-primary">{formatStat(stats.users)}</p>
+                  <p className="text-xs sm:text-sm text-text-muted mt-1">Pengguna aktif</p>
+                </div>
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-dim mb-3">
+                    <ArrowLeftRight size={18} className="text-accent" />
+                  </div>
+                  <p className="text-2xl sm:text-3xl font-black text-text-primary">{formatStat(stats.transactions)}</p>
+                  <p className="text-xs sm:text-sm text-text-muted mt-1">Transaksi tercatat</p>
+                </div>
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-dim mb-3">
+                    <Zap size={18} className="text-accent" />
+                  </div>
+                  <p className="text-2xl sm:text-3xl font-black text-text-primary">&lt;3 dtk</p>
+                  <p className="text-xs sm:text-sm text-text-muted mt-1">Waktu respon bot</p>
+                </div>
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-accent-dim mb-3">
+                    <ShieldCheck size={18} className="text-accent" />
+                  </div>
+                  <p className="text-2xl sm:text-3xl font-black text-text-primary">100%</p>
+                  <p className="text-xs sm:text-sm text-text-muted mt-1">Data terenkripsi</p>
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
+        </section>
+      )}
 
-          <AnimatedSection delay={0.15}>
-            <AnimatedChat />
-          </AnimatedSection>
-        </div>
-      </section>
-
-      <div className="section-divider max-w-4xl mx-auto" />
+      {stats.users > 0 && <div className="section-divider max-w-4xl mx-auto" />}
 
       {/* ─── FEATURES ─── */}
       <section id="fitur" className="py-20 sm:py-32 px-4 sm:px-6">
@@ -240,6 +287,147 @@ export default function LandingPage() {
               </AnimatedSection>
             ))}
           </div>
+        </div>
+      </section>
+
+      <div className="section-divider max-w-4xl mx-auto" />
+
+      {/* ─── DASHBOARD PREVIEW ─── */}
+      <section className="py-20 sm:py-32 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection>
+            <div className="text-center mb-10 sm:mb-16">
+              <p className="text-accent text-xs sm:text-sm font-medium tracking-widest uppercase mb-3">Dashboard</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
+                Pantau keuangan secara visual
+              </h2>
+              <p className="text-text-muted text-sm sm:text-base max-w-xl mx-auto">
+                Selain dari WhatsApp, kamu juga bisa lihat data keuanganmu lewat dashboard web yang rapi dan interaktif.
+              </p>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection delay={0.15}>
+            <GlowCard className="p-0! overflow-hidden rounded-2xl!">
+              {/* Browser chrome */}
+              <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-border-subtle bg-bg-card-hover/50">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-danger/40" />
+                  <div className="w-3 h-3 rounded-full bg-accent/30" />
+                  <div className="w-3 h-3 rounded-full bg-success/40" />
+                </div>
+                <div className="flex-1 mx-4">
+                  <div className="bg-bg-primary rounded-lg px-3 py-1 text-xs text-text-muted font-mono text-center max-w-xs mx-auto">
+                    izincatat.id/dashboard
+                  </div>
+                </div>
+              </div>
+
+              {/* Dashboard mockup */}
+              <div className="p-4 sm:p-6 space-y-4">
+                {/* Summary cards row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-bg-primary rounded-xl p-3 sm:p-4 border border-border-subtle">
+                    <p className="text-[10px] sm:text-xs text-text-muted mb-1">Saldo Total</p>
+                    <p className="text-sm sm:text-lg font-bold text-text-primary">Rp2.465.000</p>
+                  </div>
+                  <div className="bg-bg-primary rounded-xl p-3 sm:p-4 border border-border-subtle">
+                    <p className="text-[10px] sm:text-xs text-text-muted mb-1">Masuk Hari Ini</p>
+                    <p className="text-sm sm:text-lg font-bold text-success flex items-center gap-1">
+                      <ArrowUpRight size={14} />Rp150.000
+                    </p>
+                  </div>
+                  <div className="bg-bg-primary rounded-xl p-3 sm:p-4 border border-border-subtle">
+                    <p className="text-[10px] sm:text-xs text-text-muted mb-1">Keluar Hari Ini</p>
+                    <p className="text-sm sm:text-lg font-bold text-danger flex items-center gap-1">
+                      <ArrowDownRight size={14} />Rp85.000
+                    </p>
+                  </div>
+                  <div className="bg-bg-primary rounded-xl p-3 sm:p-4 border border-border-subtle">
+                    <p className="text-[10px] sm:text-xs text-text-muted mb-1">Total Transaksi</p>
+                    <p className="text-sm sm:text-lg font-bold text-text-primary">142</p>
+                  </div>
+                </div>
+
+                {/* Chart + Category row */}
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                  {/* Chart area */}
+                  <div className="sm:col-span-3 bg-bg-primary rounded-xl p-4 border border-border-subtle">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-xs font-medium text-text-primary">Tren 7 Hari Terakhir</p>
+                      <TrendingUp size={14} className="text-accent" />
+                    </div>
+                    {/* Faux bar chart */}
+                    <div className="flex items-end gap-1.5 sm:gap-2 h-24 sm:h-32">
+                      {[55, 30, 70, 45, 80, 35, 65].map((h, i) => (
+                        <div key={i} className="flex-1 flex flex-col gap-1 items-center justify-end h-full">
+                          <div className="w-full flex flex-col gap-0.5 justify-end h-full">
+                            <div
+                              className="w-full bg-success/30 rounded-t-sm"
+                              style={{ height: `${h}%` }}
+                            />
+                            <div
+                              className="w-full bg-danger/30 rounded-b-sm"
+                              style={{ height: `${Math.max(15, h - 20)}%` }}
+                            />
+                          </div>
+                          <span className="text-[8px] sm:text-[10px] text-text-muted">
+                            {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'][i]}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Category breakdown */}
+                  <div className="sm:col-span-2 bg-bg-primary rounded-xl p-4 border border-border-subtle">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-xs font-medium text-text-primary">Kategori</p>
+                      <PieChart size={14} className="text-accent" />
+                    </div>
+                    <div className="space-y-2.5">
+                      {[
+                        { name: 'Makanan', pct: 40, color: 'bg-orange-400' },
+                        { name: 'Transport', pct: 25, color: 'bg-blue-400' },
+                        { name: 'Belanja', pct: 20, color: 'bg-pink-400' },
+                        { name: 'Lainnya', pct: 15, color: 'bg-gray-400' },
+                      ].map((cat) => (
+                        <div key={cat.name} className="space-y-1">
+                          <div className="flex items-center justify-between text-[10px] sm:text-xs">
+                            <span className="text-text-secondary">{cat.name}</span>
+                            <span className="text-text-muted">{cat.pct}%</span>
+                          </div>
+                          <div className="h-1.5 bg-border-subtle rounded-full overflow-hidden">
+                            <div className={`h-full ${cat.color} rounded-full`} style={{ width: `${cat.pct}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </GlowCard>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      <div className="section-divider max-w-4xl mx-auto" />
+
+      {/* ─── DEMO CHAT ─── */}
+      <section className="py-20 sm:py-32 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection>
+            <div className="text-center mb-10 sm:mb-16">
+              <p className="text-accent text-xs sm:text-sm font-medium tracking-widest uppercase mb-3">Live Demo</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+                Seperti ngobrol biasa
+              </h2>
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection delay={0.15}>
+            <AnimatedChat />
+          </AnimatedSection>
         </div>
       </section>
 
@@ -280,12 +468,12 @@ export default function LandingPage() {
 
       <div className="section-divider max-w-4xl mx-auto" />
 
-      {/* ─── COMMANDS ─── */}
+      {/* ─── CONTOH PERINTAH ─── */}
       <section className="py-20 sm:py-32 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection>
             <div className="text-center mb-12 sm:mb-20">
-              <p className="text-accent text-xs sm:text-sm font-medium tracking-widest uppercase mb-3">Perintah</p>
+              <p className="text-accent text-xs sm:text-sm font-medium tracking-widest uppercase mb-3">Contoh Pesan</p>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-4">
                 Semua bisa lewat chat
               </h2>
@@ -295,38 +483,20 @@ export default function LandingPage() {
             </div>
           </AnimatedSection>
 
-          {/* Terminal-like container */}
           <AnimatedSection delay={0.1}>
-            <GlowCard className="p-0! rounded-2xl! overflow-hidden">
-              {/* Terminal header */}
-              <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-border-subtle bg-bg-card-hover/50">
-                <Terminal size={14} className="text-accent" />
-                <span className="text-xs text-text-muted font-mono">izincatat — WhatsApp</span>
-                <div className="ml-auto flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-danger/40" />
-                  <div className="w-3 h-3 rounded-full bg-accent/30" />
-                  <div className="w-3 h-3 rounded-full bg-success/40" />
-                </div>
-              </div>
-
-              {/* Command list */}
-              <div className="divide-y divide-border-subtle">
-                {commands.map((c) => (
-                  <div
-                    key={c.cmd}
-                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-4 sm:px-5 py-3.5 sm:py-4 hover:bg-bg-card-hover/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-accent text-xs font-mono">$</span>
-                      <code className="text-accent text-xs sm:text-sm font-mono">
-                        {c.cmd}
-                      </code>
-                    </div>
-                    <span className="text-text-muted text-xs sm:text-sm sm:ml-auto">{c.desc}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {exampleMessages.map((m) => (
+                <GlowCard key={m.text} className="flex items-start gap-4 py-4! sm:py-5!">
+                  <div className="w-9 h-9 rounded-xl bg-accent-dim flex items-center justify-center shrink-0 mt-0.5">
+                    <MessageSquare size={16} className="text-accent" />
                   </div>
-                ))}
-              </div>
-            </GlowCard>
+                  <div className="min-w-0">
+                    <p className="text-sm sm:text-base font-medium text-text-primary break-words">&ldquo;{m.text}&rdquo;</p>
+                    <p className="text-xs sm:text-sm text-text-muted mt-1">{m.desc}</p>
+                  </div>
+                </GlowCard>
+              ))}
+            </div>
           </AnimatedSection>
         </div>
       </section>
@@ -349,19 +519,19 @@ export default function LandingPage() {
           </AnimatedSection>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
-            {/* Trial */}
+            {/* Gratis */}
             <AnimatedSection delay={0}>
               <GlowCard className="flex flex-col h-full">
-                <p className="text-xs font-medium text-text-muted uppercase tracking-widest mb-4">Trial</p>
-                <p className="text-4xl font-black text-text-primary mb-1">Gratis</p>
-                <p className="text-text-muted text-sm mb-7">30 hari pertama</p>
+                <p className="text-xs font-medium text-text-muted uppercase tracking-widest mb-4">Gratis</p>
+                <p className="text-4xl font-black text-text-primary mb-1">Rp0</p>
+                <p className="text-text-muted text-sm mb-7">Gratis selamanya</p>
                 <ul className="space-y-2.5 text-sm text-text-secondary flex-1">
-                  <li className="flex items-center gap-2"><span className="text-accent">✓</span> Semua fitur tersedia</li>
-                  <li className="flex items-center gap-2"><span className="text-accent">✓</span> Tanpa kartu kredit</li>
-                  <li className="flex items-center gap-2"><span className="text-accent">✓</span> Tidak perlu daftar email</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> 50 transaksi per bulan</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Catat via teks &amp; voice note</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Dashboard &amp; laporan dasar</li>
                 </ul>
                 <a
-                  href={WA_LINK}
+                  href={waLink('Halo, saya mau coba Izin Catat!')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-7 block text-center text-sm font-medium border border-border-card text-text-primary px-4 py-3 rounded-full hover:bg-bg-card-hover hover:border-text-muted transition-all"
@@ -371,33 +541,8 @@ export default function LandingPage() {
               </GlowCard>
             </AnimatedSection>
 
-            {/* Basic */}
-            <AnimatedSection delay={0.1}>
-              <GlowCard className="flex flex-col h-full">
-                <p className="text-xs font-medium text-text-muted uppercase tracking-widest mb-4">Basic</p>
-                <div className="flex items-end gap-1 mb-1">
-                  <p className="text-4xl font-black text-text-primary">{formatHarga(hargaPro)}</p>
-                  <p className="text-text-muted text-sm mb-1.5">/bulan</p>
-                </div>
-                <p className="text-text-muted text-sm mb-7">Untuk pemakaian harian</p>
-                <ul className="space-y-2.5 text-sm text-text-secondary flex-1">
-                  <li className="flex items-center gap-2"><span className="text-accent">✓</span> Semua fitur tersedia</li>
-                  <li className="flex items-center gap-2"><span className="text-accent">✓</span> Hingga 500 transaksi/bulan</li>
-                  <li className="flex items-center gap-2"><span className="text-accent">✓</span> Dashboard &amp; laporan lengkap</li>
-                </ul>
-                <a
-                  href={WA_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-7 block text-center text-sm font-medium border border-border-card text-text-primary px-4 py-3 rounded-full hover:bg-bg-card-hover hover:border-text-muted transition-all"
-                >
-                  Pilih Basic
-                </a>
-              </GlowCard>
-            </AnimatedSection>
-
             {/* Pro */}
-            <AnimatedSection delay={0.2}>
+            <AnimatedSection delay={0.1}>
               <div className="relative">
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 text-[10px] font-semibold bg-accent text-bg-primary px-4 py-1 rounded-full tracking-wide">
                   Populer
@@ -405,17 +550,17 @@ export default function LandingPage() {
                 <GlowCard className="flex flex-col h-full pricing-popular">
                   <p className="text-xs font-medium text-accent uppercase tracking-widest mb-4">Pro</p>
                   <div className="flex items-end gap-1 mb-1">
-                    <p className="text-4xl font-black text-text-primary">{formatHarga(hargaCouple)}</p>
+                    <p className="text-4xl font-black text-text-primary">{formatHarga(hargaPro)}</p>
                     <p className="text-text-muted text-sm mb-1.5">/bulan</p>
                   </div>
-                  <p className="text-text-muted text-sm mb-7">Tanpa batas, tanpa khawatir</p>
+                  <p className="text-text-muted text-sm mb-7">Untuk pemakaian harian</p>
                   <ul className="space-y-2.5 text-sm text-text-secondary flex-1">
-                    <li className="flex items-center gap-2"><span className="text-accent">✓</span> Semua fitur Basic</li>
-                    <li className="flex items-center gap-2"><span className="text-accent">✓</span> Transaksi tidak terbatas</li>
-                    <li className="flex items-center gap-2"><span className="text-accent">✓</span> Reminder &amp; digest mingguan</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> 500 transaksi per bulan</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Dashboard &amp; laporan lengkap</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Reminder harian otomatis</li>
                   </ul>
                   <a
-                    href={WA_LINK}
+                    href={waLink('Halo, saya tertarik paket Pro!')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-7 block text-center text-sm font-semibold bg-accent text-bg-primary px-4 py-3 rounded-full hover:brightness-110 transition-all hover:shadow-lg hover:shadow-accent/20"
@@ -424,6 +569,31 @@ export default function LandingPage() {
                   </a>
                 </GlowCard>
               </div>
+            </AnimatedSection>
+
+            {/* Couple */}
+            <AnimatedSection delay={0.2}>
+              <GlowCard className="flex flex-col h-full">
+                <p className="text-xs font-medium text-text-muted uppercase tracking-widest mb-4">Couple</p>
+                <div className="flex items-end gap-1 mb-1">
+                  <p className="text-4xl font-black text-text-primary">{formatHarga(hargaCouple)}</p>
+                  <p className="text-text-muted text-sm mb-1.5">/bulan</p>
+                </div>
+                <p className="text-text-muted text-sm mb-7">2 akun, 1 data bersama</p>
+                <ul className="space-y-2.5 text-sm text-text-secondary flex-1">
+                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Semua fitur Pro</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Transaksi tidak terbatas</li>
+                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Digest &amp; recap mingguan</li>
+                </ul>
+                <a
+                  href={waLink('Halo, saya tertarik paket Couple!')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-7 block text-center text-sm font-medium border border-border-card text-text-primary px-4 py-3 rounded-full hover:bg-bg-card-hover hover:border-text-muted transition-all"
+                >
+                  Pilih Couple
+                </a>
+              </GlowCard>
             </AnimatedSection>
           </div>
         </div>
@@ -463,15 +633,48 @@ export default function LandingPage() {
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer className="border-t border-border-card/50 py-8 sm:py-10 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-sm tracking-tight">
-            <span className="font-light text-text-muted">Izin</span><span className="font-black text-text-muted">Catat</span>
-          </span>
-          <p className="text-text-muted text-xs text-center sm:text-left">
-            Asisten keuangan pribadi via WhatsApp.
-          </p>
-          <p className="text-text-muted text-xs">© 2026 IzinCatat</p>
+      <footer className="border-t border-border-card/50 py-10 sm:py-14 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-2.5 mb-3">
+                <Logo size={24} />
+                <span className="text-sm tracking-tight">
+                  <span className="font-light text-text-secondary">Izin</span><span className="font-black text-text-primary">Catat</span>
+                </span>
+              </div>
+              <p className="text-text-muted text-sm leading-relaxed">
+                Asisten keuangan pribadi via WhatsApp. Catat, pantau, dan kelola keuanganmu tanpa ribet.
+              </p>
+            </div>
+
+            {/* Links */}
+            <div>
+              <p className="text-sm font-semibold text-text-primary mb-3">Navigasi</p>
+              <ul className="space-y-2 text-sm text-text-muted">
+                <li><a href="#fitur" className="hover:text-text-primary transition-colors">Fitur</a></li>
+                <li><a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="hover:text-text-primary transition-colors">Hubungi Kami</a></li>
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <p className="text-sm font-semibold text-text-primary mb-3">Kontak</p>
+              <ul className="space-y-2 text-sm text-text-muted">
+                <li>
+                  <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="hover:text-text-primary transition-colors flex items-center gap-2">
+                    <MessageSquare size={14} />
+                    WhatsApp: 0878-9669-5791
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-border-card/50 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <p className="text-text-muted text-xs">&copy; 2026 IzinCatat. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>

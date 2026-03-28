@@ -77,7 +77,7 @@ async function downloadCloudApiMedia(mediaId) {
   const meta = await new Promise((resolve, reject) => {
     const req = https.request({
       hostname: 'graph.facebook.com',
-      path: `/v18.0/${mediaId}`,
+      path: `/v22.0/${mediaId}`,
       method: 'GET',
       agent: httpsAgent,
       headers: { 'Authorization': `Bearer ${token}` },

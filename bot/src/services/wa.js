@@ -175,7 +175,7 @@ async function cloudApiSendText(jid, text) {
   const phone = normalizePhone(jid);
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   try {
-    const result = await cloudApiRequest('POST', `/v18.0/${phoneNumberId}/messages`, {
+    const result = await cloudApiRequest('POST', `/v22.0/${phoneNumberId}/messages`, {
       messaging_product: 'whatsapp',
       to: phone,
       type: 'text',
@@ -216,7 +216,7 @@ function cloudApiUploadMedia(imageBuffer, mimeType = 'image/png') {
 
     const options = {
       hostname: 'graph.facebook.com',
-      path: `/v18.0/${phoneNumberId}/media`,
+      path: `/v22.0/${phoneNumberId}/media`,
       method: 'POST',
       agent: httpsAgent,
       headers: {
@@ -250,7 +250,7 @@ async function cloudApiSendImage(jid, imageBuffer, caption) {
     if (!mediaId) throw new Error('Upload media gagal: ' + JSON.stringify(uploadRes));
 
     // 2. Kirim gambar via media_id
-    const result = await cloudApiRequest('POST', `/v18.0/${phoneNumberId}/messages`, {
+    const result = await cloudApiRequest('POST', `/v22.0/${phoneNumberId}/messages`, {
       messaging_product: 'whatsapp',
       to: phone,
       type: 'image',

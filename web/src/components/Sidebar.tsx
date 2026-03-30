@@ -38,6 +38,7 @@ export default function Sidebar() {
         href: `/${userId}/${item.segment}`,
         label: item.label,
         icon: item.icon,
+        segment: item.segment,
         isActive: pathParts[1] === item.segment,
       }))
     : [];

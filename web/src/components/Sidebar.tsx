@@ -7,6 +7,8 @@ import {
   ArrowLeftRight,
   BarChart3,
   PieChart,
+  UserRound,
+  Crown,
   Menu,
   X,
 } from 'lucide-react';
@@ -19,6 +21,8 @@ const NAV_ITEMS = [
   { segment: 'transaksi', label: 'Transaksi', icon: ArrowLeftRight },
   { segment: 'laporan', label: 'Laporan', icon: BarChart3 },
   { segment: 'kategori', label: 'Kategori', icon: PieChart },
+  { segment: 'profil', label: 'Profil', icon: UserRound },
+  { segment: 'upgrade', label: 'Upgrade', icon: Crown },
 ];
 
 export default function Sidebar() {
@@ -97,7 +101,9 @@ export default function Sidebar() {
                   transition-all duration-150 group
                   ${item.isActive
                     ? 'bg-accent text-bg-primary'
-                    : 'text-text-muted hover:text-text-primary hover:bg-bg-card-hover'
+                    : item.segment === 'upgrade'
+                      ? 'text-accent hover:bg-accent-dim'
+                      : 'text-text-muted hover:text-text-primary hover:bg-bg-card-hover'
                   }
                 `}
               >

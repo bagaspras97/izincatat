@@ -98,7 +98,6 @@ body {
 }
 .bento-card:hover {
   background: var(--bg-card-hover);
-  transform: translateY(-1px);
   box-shadow: 0 8px 32px var(--card-shadow-hover);
 }
 

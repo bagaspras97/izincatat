@@ -29,6 +29,7 @@ export default function LaporanPage({ params }: { params: Promise<{ userId: stri
   const [periode, setPeriode] = useState('bulan');
 
   useEffect(() => {
+    setLoading(true);
     fetch(`/api/laporan?userId=${userId}&periode=${periode}`)
       .then((res) => res.json())
       .then(setData)
@@ -36,25 +37,15 @@ export default function LaporanPage({ params }: { params: Promise<{ userId: stri
       .finally(() => setLoading(false));
   }, [userId, periode]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const doughnutLabels = data?.kategori.map((k) => k.nama) ?? [];
+  const doughnutData = data?.kategori.map((k) => k.total) ?? [];
+  const doughnutColors = data?.kategori.map((k) => getKategoriColor(k.nama)) ?? [];
 
-  if (!data) {
-    return <div className="text-center text-text-muted py-20">Gagal memuat laporan</div>;
-  }
-
-  const doughnutLabels = data.kategori.map((k) => k.nama);
-  const doughnutData = data.kategori.map((k) => k.total);
-  const doughnutColors = data.kategori.map((k) => getKategoriColor(k.nama));
+  const sk = 'rounded-xl bg-bg-card-hover animate-pulse';
 
   return (
     <div className="max-w-[1400px] mx-auto">
-      {/* Header */}
+      {/* Header — selalu tampil, period selector tetap interaktif saat loading */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Laporan</h1>
@@ -66,19 +57,73 @@ export default function LaporanPage({ params }: { params: Promise<{ userId: stri
             <button
               key={p.value}
               onClick={() => setPeriode(p.value)}
-              className={`
-                px-4 py-2 rounded-lg text-sm font-medium transition-all
-                ${periode === p.value
-                  ? 'bg-accent text-bg-primary'
-                  : 'text-text-muted hover:text-text-primary'
-                }
-              `}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all
+                ${periode === p.value ? 'bg-accent text-bg-primary' : 'text-text-muted hover:text-text-primary'}`}
             >
               {p.label}
             </button>
           ))}
         </div>
       </div>
+
+      {/* ── SKELETON ── */}
+      {loading && (
+        <>
+          {/* Summary cards skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bento-card flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-xl shrink-0 ${sk}`} />
+                <div className="flex-1 space-y-2">
+                  <div className={`h-3 w-24 ${sk}`} />
+                  <div className={`h-6 w-32 ${sk}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Charts row skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="bento-card lg:col-span-2 space-y-3">
+              <div className={`h-4 w-48 ${sk}`} />
+              <div className={`h-3 w-24 ${sk}`} />
+              <div className={`h-55 sm:h-80 w-full ${sk}`} />
+            </div>
+            <div className="bento-card space-y-3">
+              <div className={`h-4 w-36 ${sk}`} />
+              <div className={`h-3 w-24 ${sk}`} />
+              <div className={`h-60 sm:h-70 w-full ${sk}`} />
+            </div>
+          </div>
+
+          {/* Table skeleton */}
+          <div className="bento-card mt-3 sm:mt-4 p-0! overflow-hidden">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border-card">
+              <div className={`h-4 w-48 ${sk}`} />
+            </div>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-border-subtle">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${sk}`} />
+                  <div className={`h-3.5 w-28 ${sk}`} />
+                </div>
+                <div className="flex items-center gap-6">
+                  <div className={`h-3.5 w-20 ${sk}`} />
+                  <div className={`h-3.5 w-16 ${sk}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ── ERROR ── */}
+      {!loading && !data && (
+        <div className="text-center text-text-muted py-20">Gagal memuat laporan</div>
+      )}
+
+      {/* ── DATA ── */}
+      {!loading && data && <>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
@@ -203,6 +248,7 @@ export default function LaporanPage({ params }: { params: Promise<{ userId: stri
           </div>
         </div>
       )}
+      </>}
     </div>
   );
 }

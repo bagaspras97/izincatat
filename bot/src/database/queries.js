@@ -161,8 +161,10 @@ async function getSaldoHariIni(userId) {
   const mulai = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
   const selesai = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
 
-  const pemasukan = await hitungTotal(userId, 'masuk', mulai, selesai); // NOSONAR
-  const pengeluaran = await hitungTotal(userId, 'keluar', mulai, selesai); // NOSONAR
+  const [pemasukan, pengeluaran] = await Promise.all([
+    hitungTotal(userId, 'masuk', mulai, selesai),
+    hitungTotal(userId, 'keluar', mulai, selesai),
+  ]);
 
   return {
     pemasukan,
@@ -181,8 +183,10 @@ async function getSaldoBulanIni(userId) {
   const mulai = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
   const selesai = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
 
-  const pemasukan = await hitungTotal(userId, 'masuk', mulai, selesai); // NOSONAR
-  const pengeluaran = await hitungTotal(userId, 'keluar', mulai, selesai); // NOSONAR
+  const [pemasukan, pengeluaran] = await Promise.all([
+    hitungTotal(userId, 'masuk', mulai, selesai),
+    hitungTotal(userId, 'keluar', mulai, selesai),
+  ]);
 
   return {
     pemasukan,
@@ -218,36 +222,34 @@ async function getLaporan(userId, periode) {
     labelPeriode = 'Bulan Ini';
   }
 
-  // Total pemasukan & pengeluaran
-  const totalMasuk = await hitungTotal(userId, 'masuk', mulai, selesai); // NOSONAR
-  const totalKeluar = await hitungTotal(userId, 'keluar', mulai, selesai); // NOSONAR
-
-  // Breakdown pengeluaran per kategori
-  const breakdownRaw = await prisma.transaksi.groupBy({
-    by: ['kategori'],
-    where: {
-      userId,
-      jenis: 'keluar',
-      tanggal: { gte: mulai, lt: selesai },
-    },
-    _sum: { nominal: true },
-    orderBy: { _sum: { nominal: 'desc' } },
-  });
+  // Semua queries dijalankan paralel
+  const [totalMasuk, totalKeluar, breakdownRaw, transaksiTerakhirRaw] = await Promise.all([
+    hitungTotal(userId, 'masuk', mulai, selesai),
+    hitungTotal(userId, 'keluar', mulai, selesai),
+    prisma.transaksi.groupBy({
+      by: ['kategori'],
+      where: {
+        userId,
+        jenis: 'keluar',
+        tanggal: { gte: mulai, lt: selesai },
+      },
+      _sum: { nominal: true },
+      orderBy: { _sum: { nominal: 'desc' } },
+    }),
+    prisma.transaksi.findMany({
+      where: {
+        userId,
+        tanggal: { gte: mulai, lt: selesai },
+      },
+      orderBy: { tanggal: 'desc' },
+      take: 5,
+    }),
+  ]);
 
   const breakdown = breakdownRaw.map((item) => ({
     kategori: item.kategori,
     total: Number.parseFloat(item._sum.nominal) || 0,
   }));
-
-  // 5 transaksi terakhir dalam periode
-  const transaksiTerakhirRaw = await prisma.transaksi.findMany({
-    where: {
-      userId,
-      tanggal: { gte: mulai, lt: selesai },
-    },
-    orderBy: { tanggal: 'desc' },
-    take: 5,
-  });
 
   return {
     labelPeriode,
@@ -290,12 +292,12 @@ async function getRiwayat(userId, limit = 10) {
 
 /**
  * Ambil semua user aktif (untuk scheduler).
- * @returns {Array<{ id, nomorWa, nama, publicId }>}
+ * @returns {Array<{ id, nomorWa, nama, publicId, tier, tierExpiry }>}
  */
 async function getActiveUsers() {
   return prisma.user.findMany({
     where: { isActive: true },
-    select: { id: true, nomorWa: true, nama: true, publicId: true },
+    select: { id: true, nomorWa: true, nama: true, publicId: true, tier: true, tierExpiry: true },
   });
 }
 

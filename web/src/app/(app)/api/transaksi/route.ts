@@ -18,14 +18,28 @@ export async function GET(req: NextRequest) {
 
     const page = Math.max(1, Number(searchParams.get('page')) || 1);
     const limit = Math.min(100, Math.max(1, Number(searchParams.get('limit')) || 20));
-    const jenis = searchParams.get('jenis'); // masuk | keluar | null
+    const jenis    = searchParams.get('jenis');    // masuk | keluar | null
+    const kategori = searchParams.get('kategori'); // nama kategori | null
     const search = searchParams.get('search')?.trim().toLowerCase() || '';
     const sort = searchParams.get('sort') || 'terbaru'; // terbaru | terlama | terbesar | terkecil
+    const dateFrom = searchParams.get('dateFrom'); // YYYY-MM-DD
+    const dateTo   = searchParams.get('dateTo');   // YYYY-MM-DD
 
     // Filter langsung via relation — Prisma generate JOIN, tidak perlu SELECT id dulu
+    const tanggalFilter =
+      dateFrom || dateTo
+        ? {
+            ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+            // dateTo inklusif: ambil sampai akhir hari tersebut
+            ...(dateTo ? { lt: new Date(new Date(dateTo).getTime() + 86_400_000) } : {}),
+          }
+        : undefined;
+
     const where = {
       user: { publicId },
       ...(jenis === 'masuk' || jenis === 'keluar' ? { jenis } : {}),
+      ...(kategori ? { kategori } : {}),
+      ...(tanggalFilter ? { tanggal: tanggalFilter } : {}),
     };
 
     // Build orderBy
@@ -37,7 +51,8 @@ export async function GET(req: NextRequest) {
     };
     const orderBy = orderByMap[sort as keyof typeof orderByMap] ?? orderByMap.terbaru;
 
-    // Jika ada search, fetch semua dulu lalu filter in-memory setelah dekripsi
+    // Jika ada search, fetch semua dulu lalu filter in-memory setelah dekripsi.
+    // keterangan dienkripsi → tidak bisa filter di DB, harus in-memory.
     if (search) {
       const allTransaksi = await prisma.transaksi.findMany({
         where,
@@ -56,7 +71,8 @@ export async function GET(req: NextRequest) {
       }));
 
       const filtered = decrypted.filter((t) =>
-        t.keterangan.toLowerCase().includes(search)
+        t.keterangan.toLowerCase().includes(search) ||
+        t.kategori.toLowerCase().includes(search)
       );
 
       const total = filtered.length;

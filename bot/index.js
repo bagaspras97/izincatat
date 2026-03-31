@@ -5,7 +5,7 @@
  */
 
 // Load environment variables
-require('dotenv').config();
+require('dotenv').config({ override: true });
 
 const { disconnect } = require('./src/database/prisma');
 const { stopScheduler } = require('./src/services/scheduler');
@@ -27,6 +27,9 @@ async function main() {
     if (WA_PROVIDER === 'wablas') {
       const { startWebhookServer } = require('./src/server');
       await startWebhookServer();
+    } else if (WA_PROVIDER === 'cloudapi') {
+      const { startCloudApiServer } = require('./src/server-cloudapi');
+      await startCloudApiServer();
     } else {
       const { startBot } = require('./src/bot');
       await startBot();

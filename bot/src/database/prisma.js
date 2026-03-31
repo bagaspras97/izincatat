@@ -8,7 +8,7 @@ const { PrismaClient } = require('@prisma/client');
 // Buat singleton agar tidak banyak koneksi terbuka
 const prisma = new PrismaClient({
   log: process.env.DEBUG === 'true'
-    ? ['query', 'info', 'warn', 'error']
+    ? ['warn', 'error']  // Hilangkan 'query' log — terlalu verbose dan menambah overhead I/O
     : ['warn', 'error'],
 });
 

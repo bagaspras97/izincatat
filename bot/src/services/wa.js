@@ -2,9 +2,10 @@
  * WA Service — Izin Catat
  * Abstraction layer pengiriman pesan WhatsApp.
  *
- * Mendukung dua mode (pilih via env WA_PROVIDER):
- *   - "baileys" (default) : gunakan socket Baileys langsung
- *   - "wablas"            : gunakan Wablas REST API
+ * Mendukung tiga mode (pilih via env WA_PROVIDER):
+ *   - "baileys"   (default) : gunakan socket Baileys langsung
+ *   - "wablas"              : gunakan Wablas REST API
+ *   - "cloudapi"            : gunakan WhatsApp Cloud API (Meta/official)
  *
  * Semua handler tetap memanggil:
  *   await sock.sendMessage(sender, { text: '...' })
@@ -16,6 +17,10 @@
 const https = require('node:https');
 const http = require('node:http');
 const { URL } = require('node:url');
+
+// Persistent agents — reuse TCP/TLS connections antar requests (menghindari TLS handshake berulang)
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 5 });
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 5 });
 
 // ═══════════════════════════════════════════════
 //  WABLAS HTTP HELPER
@@ -41,6 +46,7 @@ function wablasRequest(method, path, body) {
       port: parsed.port || (isHttps ? 443 : 80),
       path: parsed.pathname + parsed.search,
       method,
+      agent: isHttps ? httpsAgent : httpAgent,
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json',
@@ -48,10 +54,12 @@ function wablasRequest(method, path, body) {
       },
     };
 
+    const tWablas = Date.now();
     const req = lib.request(options, (res) => {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
+        console.log(`[WA] ${method} ${parsed.pathname} → ${Date.now() - tWablas}ms (status ${res.statusCode})`);
         try { resolve(JSON.parse(data)); }
         catch (parseErr) { 
           console.debug('[WA] Response bukan JSON:', parseErr.message);
@@ -123,6 +131,142 @@ async function wablasSendImage(jid, imageBuffer, caption) {
 }
 
 // ═══════════════════════════════════════════════
+//  WHATSAPP CLOUD API HELPER
+// ═══════════════════════════════════════════════
+
+/**
+ * Kirim HTTP request ke Meta Graph API.
+ */
+function cloudApiRequest(method, path, body) {
+  return new Promise((resolve, reject) => {
+    const token = process.env.WHATSAPP_TOKEN;
+    const payload = body ? JSON.stringify(body) : null;
+
+    const options = {
+      hostname: 'graph.facebook.com',
+      path,
+      method,
+      agent: httpsAgent,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {}),
+      },
+    };
+
+    const tApi = Date.now();
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        console.log(`[WA CloudAPI] ${method} ${path} → ${Date.now() - tApi}ms (status ${res.statusCode})`);
+        try { resolve(JSON.parse(data)); }
+        catch { resolve({ raw: data }); }
+      });
+    });
+
+    req.on('error', reject);
+    if (payload) req.write(payload);
+    req.end();
+  });
+}
+
+async function cloudApiSendText(jid, text) {
+  const phone = normalizePhone(jid);
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  try {
+    const result = await cloudApiRequest('POST', `/v22.0/${phoneNumberId}/messages`, {
+      messaging_product: 'whatsapp',
+      to: phone,
+      type: 'text',
+      text: { body: text, preview_url: false },
+    });
+    if (result.error) {
+      console.error('[WA CloudAPI] Error kirim teks:', JSON.stringify(result.error));
+      throw new Error(result.error.message);
+    }
+  } catch (err) {
+    console.error(`[WA CloudAPI] Gagal kirim teks ke ${phone}:`, err.message);
+    throw err;
+  }
+}
+
+/**
+ * Upload buffer gambar ke Cloud API, kembalikan media_id.
+ * Menggunakan multipart/form-data tanpa dependency tambahan.
+ */
+function cloudApiUploadMedia(imageBuffer, mimeType = 'image/png') {
+  return new Promise((resolve, reject) => {
+    const token = process.env.WHATSAPP_TOKEN;
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const boundary = `----FormBoundary${Date.now()}`;
+
+    // Build multipart body
+    const pre = Buffer.from(
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="messaging_product"\r\n\r\nwhatsapp\r\n` +
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="type"\r\n\r\n${mimeType}\r\n` +
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="file"; filename="chart.png"\r\n` +
+      `Content-Type: ${mimeType}\r\n\r\n`
+    );
+    const post = Buffer.from(`\r\n--${boundary}--\r\n`);
+    const fullBody = Buffer.concat([pre, imageBuffer, post]);
+
+    const options = {
+      hostname: 'graph.facebook.com',
+      path: `/v22.0/${phoneNumberId}/media`,
+      method: 'POST',
+      agent: httpsAgent,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        'Content-Length': fullBody.length,
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch { resolve({ raw: data }); }
+      });
+    });
+    req.on('error', reject);
+    req.write(fullBody);
+    req.end();
+  });
+}
+
+async function cloudApiSendImage(jid, imageBuffer, caption) {
+  const phone = normalizePhone(jid);
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  try {
+    // 1. Upload media → dapatkan media_id
+    const uploadRes = await cloudApiUploadMedia(imageBuffer, 'image/png');
+    const mediaId = uploadRes?.id;
+    if (!mediaId) throw new Error('Upload media gagal: ' + JSON.stringify(uploadRes));
+
+    // 2. Kirim gambar via media_id
+    const result = await cloudApiRequest('POST', `/v22.0/${phoneNumberId}/messages`, {
+      messaging_product: 'whatsapp',
+      to: phone,
+      type: 'image',
+      image: { id: mediaId, caption: caption || '' },
+    });
+    if (result.error) {
+      console.error('[WA CloudAPI] Error kirim gambar:', JSON.stringify(result.error));
+      throw new Error(result.error.message);
+    }
+  } catch (err) {
+    console.error(`[WA CloudAPI] Gagal kirim gambar ke ${phone}:`, err.message);
+    throw err;
+  }
+}
+
+// ═══════════════════════════════════════════════
 //  SOCK FACTORY
 // ═══════════════════════════════════════════════
 
@@ -131,9 +275,9 @@ async function wablasSendImage(jid, imageBuffer, caption) {
  * Mode ditentukan oleh env WA_PROVIDER.
  *
  * Untuk mode "baileys", kembalikan socket Baileys asli.
- * Untuk mode "wablas", kembalikan objek mock dengan interface yang sama.
+ * Untuk mode "wablas" / "cloudapi", kembalikan objek mock dengan interface yang sama.
  *
- * @param {object|null} baileysSocket - Socket Baileys (null jika mode wablas)
+ * @param {object|null} baileysSocket - Socket Baileys (null jika mode wablas/cloudapi)
  * @returns {object} sock dengan method sendMessage & sendPresenceUpdate
  */
 function createSock(baileysSocket = null) {
@@ -142,6 +286,19 @@ function createSock(baileysSocket = null) {
   if (provider === 'baileys') {
     if (!baileysSocket) throw new Error('baileysSocket diperlukan untuk mode baileys');
     return baileysSocket;
+  }
+
+  if (provider === 'cloudapi') {
+    return {
+      sendMessage: async (jid, content) => {
+        if (content.text) {
+          await cloudApiSendText(jid, content.text);
+        } else if (content.image) {
+          await cloudApiSendImage(jid, content.image, content.caption || '');
+        }
+      },
+      sendPresenceUpdate: async () => {},
+    };
   }
 
   // ── Mode Wablas ──
@@ -171,4 +328,14 @@ function getWablasSock() {
   return _wablasSock;
 }
 
-module.exports = { createSock, getWablasSock, normalizePhone };
+// Singleton cloudapi sock
+let _cloudApiSock = null;
+
+function getCloudApiSock() {
+  if (!_cloudApiSock) {
+    _cloudApiSock = createSock(null);
+  }
+  return _cloudApiSock;
+}
+
+module.exports = { createSock, getWablasSock, getCloudApiSock, normalizePhone };

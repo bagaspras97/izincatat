@@ -130,8 +130,10 @@ async function handleWebhook(req, res) {
     if (!message || message.trim() === '') return;
 
     console.log(`📩 Pesan dari ${pushName || phone}: "${message}"`);
+    const tHandle = Date.now();
     await handleMessage(sock, sender, message, pushName);
-    console.log(`⏱️  Selesai dalam ${Date.now() - t0}ms`);
+    const tDone = Date.now();
+    console.log(`⏱️  handleMessage: ${tDone - tHandle}ms | total sejak webhook: ${tDone - t0}ms`);
 
   } catch (err) {
     console.error('[Webhook] Error:', err.message);

@@ -23,6 +23,8 @@ import {
   ArrowDownRight,
   PieChart,
   Check,
+  Clock,
+  X,
 } from 'lucide-react';
 
 /* ─── DATA ─── */
@@ -516,10 +518,14 @@ export function LandingClient({
                 <p className="text-xs font-medium text-text-muted uppercase tracking-widest mb-4">Gratis</p>
                 <p className="text-4xl font-black text-text-primary mb-1">Rp0</p>
                 <p className="text-text-muted text-sm mb-7">Gratis selamanya</p>
-                <ul className="space-y-2.5 text-sm text-text-secondary flex-1">
-                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> 50 transaksi per bulan</li>
-                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Catat via teks &amp; voice note</li>
-                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Dashboard &amp; laporan dasar</li>
+                <ul className="space-y-2.5 text-sm flex-1">
+                  <li className="flex items-center gap-2 text-text-secondary"><Check size={14} className="text-accent shrink-0" /> Maksimal 50 transaksi per bulan</li>
+                  <li className="flex items-center gap-2 text-text-secondary"><Check size={14} className="text-accent shrink-0" /> Catat via teks &amp; voice note</li>
+                  <li className="flex items-center gap-2 text-text-secondary"><Check size={14} className="text-accent shrink-0" /> Dashboard &amp; ringkasan keuangan</li>
+                  <li className="flex items-center gap-2 text-text-secondary"><Check size={14} className="text-accent shrink-0" /> Laporan bulanan dasar</li>
+                  <li className="flex items-center gap-2 text-text-secondary"><Check size={14} className="text-accent shrink-0" /> Analisis kategori pengeluaran</li>
+                  <li className="flex items-center gap-2 text-text-muted opacity-40 line-through"><X size={14} className="shrink-0" /> Export laporan ke CSV</li>
+                  <li className="flex items-center gap-2 text-text-muted opacity-40 line-through"><X size={14} className="shrink-0" /> Reminder harian otomatis</li>
                 </ul>
                 <a
                   href={waLink('Halo, saya mau coba Izin Catat!')}
@@ -544,11 +550,15 @@ export function LandingClient({
                     <p className="text-4xl font-black text-text-primary">{formatHarga(hargaPro)}</p>
                     <p className="text-text-muted text-sm mb-1.5">/bulan</p>
                   </div>
-                  <p className="text-text-muted text-sm mb-7">Untuk pemakaian harian</p>
+                  <p className="text-text-muted text-sm mb-7">Akses penuh semua fitur</p>
                   <ul className="space-y-2.5 text-sm text-text-secondary flex-1">
-                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> 500 transaksi per bulan</li>
-                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Dashboard &amp; laporan lengkap</li>
-                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Reminder harian otomatis</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Transaksi tidak terbatas</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Catat via teks &amp; voice note</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Dashboard &amp; ringkasan keuangan</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Laporan bulanan lengkap + grafik</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Analisis kategori pengeluaran</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Export laporan ke CSV</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Reminder harian otomatis via WA</li>
                   </ul>
                   <a
                     href={waLink('Halo, saya tertarik paket Pro!')}
@@ -564,27 +574,28 @@ export function LandingClient({
 
             {/* Couple */}
             <AnimatedSection delay={0.2}>
-              <GlowCard className="flex flex-col h-full">
-                <p className="text-xs font-medium text-text-muted uppercase tracking-widest mb-4">Couple</p>
-                <div className="flex items-end gap-1 mb-1">
-                  <p className="text-4xl font-black text-text-primary">{formatHarga(hargaCouple)}</p>
-                  <p className="text-text-muted text-sm mb-1.5">/bulan</p>
-                </div>
-                <p className="text-text-muted text-sm mb-7">2 akun, 1 data bersama</p>
-                <ul className="space-y-2.5 text-sm text-text-secondary flex-1">
-                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Semua fitur Pro</li>
-                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Transaksi tidak terbatas</li>
-                  <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Digest &amp; recap mingguan</li>
-                </ul>
-                <a
-                  href={waLink('Halo, saya tertarik paket Couple!')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-7 block text-center text-sm font-medium border border-border-card text-text-primary px-4 py-3 rounded-full hover:bg-bg-card-hover hover:border-text-muted transition-all"
-                >
-                  Pilih Couple
-                </a>
-              </GlowCard>
+              <div className="relative opacity-75">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 text-[10px] font-semibold bg-bg-primary border border-border-card text-text-muted px-3 py-1 rounded-full tracking-wide">
+                  <Clock size={10} /> Segera hadir
+                </span>
+                <GlowCard className="flex flex-col h-full">
+                  <p className="text-xs font-medium text-text-muted uppercase tracking-widest mb-4">Couple</p>
+                  <div className="flex items-end gap-1 mb-1">
+                    <p className="text-4xl font-black text-text-primary">{formatHarga(hargaCouple)}</p>
+                    <p className="text-text-muted text-sm mb-1.5">/bulan</p>
+                  </div>
+                  <p className="text-text-muted text-sm mb-7">2 akun, 1 data bersama</p>
+                  <ul className="space-y-2.5 text-sm text-text-secondary flex-1">
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Semua fitur Pro</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> 2 akun WA, 1 dashboard bersama</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Laporan keuangan gabungan</li>
+                    <li className="flex items-center gap-2"><Check size={14} className="text-accent shrink-0" /> Weekly digest pasangan</li>
+                  </ul>
+                  <div className="mt-7 flex items-center justify-center gap-2 text-sm font-medium border border-border-card text-text-muted px-4 py-3 rounded-full cursor-not-allowed">
+                    <Clock size={14} /> Dalam pengembangan
+                  </div>
+                </GlowCard>
+              </div>
             </AnimatedSection>
           </div>
         </div>

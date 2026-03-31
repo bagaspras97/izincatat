@@ -11,11 +11,14 @@ const TIER_CONFIG = {
 };
 
 const TIER_FEATURES = [
-  { label: 'Catat & lihat transaksi', tiers: ['GRATIS', 'PRO', 'COUPLE'] },
-  { label: 'Laporan bulanan', tiers: ['GRATIS', 'PRO', 'COUPLE'] },
-  { label: 'Analisis kategori', tiers: ['GRATIS', 'PRO', 'COUPLE'] },
-  { label: 'Riwayat tidak terbatas', tiers: ['PRO', 'COUPLE'] },
+  { label: 'Catat via teks & voice note', tiers: ['GRATIS', 'PRO', 'COUPLE'] },
+  { label: 'Dashboard & laporan bulanan', tiers: ['GRATIS', 'PRO', 'COUPLE'] },
+  { label: 'Analisis kategori pengeluaran', tiers: ['GRATIS', 'PRO', 'COUPLE'] },
+  { label: 'Transaksi tidak terbatas', tiers: ['PRO', 'COUPLE'] },
+  { label: 'Export laporan ke CSV', tiers: ['PRO', 'COUPLE'] },
+  { label: 'Reminder harian otomatis', tiers: ['PRO', 'COUPLE'] },
   { label: 'Mode couple (2 nomor)', tiers: ['COUPLE'] },
+  { label: 'Digest & recap mingguan', tiers: ['COUPLE'] },
 ];
 
 export default async function ProfilPage({ params }: { params: Promise<{ userId: string }> }) {

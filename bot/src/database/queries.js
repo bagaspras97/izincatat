@@ -292,12 +292,12 @@ async function getRiwayat(userId, limit = 10) {
 
 /**
  * Ambil semua user aktif (untuk scheduler).
- * @returns {Array<{ id, nomorWa, nama, publicId }>}
+ * @returns {Array<{ id, nomorWa, nama, publicId, tier, tierExpiry }>}
  */
 async function getActiveUsers() {
   return prisma.user.findMany({
     where: { isActive: true },
-    select: { id: true, nomorWa: true, nama: true, publicId: true },
+    select: { id: true, nomorWa: true, nama: true, publicId: true, tier: true, tierExpiry: true },
   });
 }
 

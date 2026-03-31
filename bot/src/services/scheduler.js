@@ -35,6 +35,19 @@ function jedaBatch() {
 }
 
 // ═══════════════════════════════════════════════
+//  TIER HELPERS
+// ═══════════════════════════════════════════════
+
+/** Kembalikan tier efektif user setelah cek expiry */
+function tierEfektif(user) {
+  const tier = user.tier || 'GRATIS';
+  if (tier !== 'GRATIS' && user.tierExpiry && new Date() > new Date(user.tierExpiry)) {
+    return 'GRATIS';
+  }
+  return tier;
+}
+
+// ═══════════════════════════════════════════════
 //  REMINDER HARIAN
 // ═══════════════════════════════════════════════
 
@@ -49,16 +62,19 @@ async function jalankanReminderHarian(sock) {
 
   try {
     // Ambil semua user aktif dan Set userId yang sudah catat hari ini sekaligus
-    const [users, sudahCatatIds] = await Promise.all([
+    const [allUsers, sudahCatatIds] = await Promise.all([
       getActiveUsers(),
       getUserIdsWithTransaksiHariIni(),
     ]);
+
+    // Reminder hanya untuk PRO dan COUPLE
+    const users = allUsers.filter((u) => ['PRO', 'COUPLE'].includes(tierEfektif(u)));
 
     const usersBelumCatat = users.filter((u) => !sudahCatatIds.has(u.id));
     const dilewati = users.length - usersBelumCatat.length;
     let terkirim = 0;
 
-    console.log(`   Total: ${users.length} user, ${usersBelumCatat.length} belum catat, ${dilewati} dilewati`);
+    console.log(`   Eligible (PRO/COUPLE): ${users.length}, belum catat: ${usersBelumCatat.length}, sudah catat: ${dilewati}`);
 
     for (let i = 0; i < usersBelumCatat.length; i++) {
       const user = usersBelumCatat[i];
@@ -103,9 +119,13 @@ async function jalankanWeeklyDigest(sock) {
   console.log('📊 Weekly digest: mulai mengirim ringkasan mingguan...');
 
   try {
-    const users = await getActiveUsers();
+    const allUsers = await getActiveUsers();
+
+    // Weekly digest hanya untuk COUPLE
+    const users = allUsers.filter((u) => tierEfektif(u) === 'COUPLE');
+
     if (users.length === 0) {
-      console.log('ℹ️ Tidak ada user aktif, digest dilewati.');
+      console.log('ℹ️ Tidak ada user COUPLE aktif, digest dilewati.');
       return;
     }
 

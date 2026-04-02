@@ -127,8 +127,8 @@ export function LandingClient({
       {/* ─── NAVBAR ─── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border-card/50 bg-bg-primary/60 backdrop-blur-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Logo size={28} />
+          <div className="flex items-center">
+            <Logo size={34} />
             <span className="text-sm sm:text-base tracking-tight">
               <span className="font-light text-text-secondary">Izin</span><span className="font-black text-text-primary">Catat</span>
             </span>
@@ -640,8 +640,8 @@ export function LandingClient({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
             {/* Brand */}
             <div>
-              <div className="flex items-center gap-2.5 mb-3">
-                <Logo size={24} />
+              <div className="flex items-center mb-3">
+                <Logo size={30} />
                 <span className="text-sm tracking-tight">
                   <span className="font-light text-text-secondary">Izin</span><span className="font-black text-text-primary">Catat</span>
                 </span>

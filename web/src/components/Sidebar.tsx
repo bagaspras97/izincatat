@@ -83,7 +83,7 @@ export default function Sidebar() {
 
         {/* Logo */}
         <div className="hidden lg:flex w-11 h-11 items-center justify-center mb-2">
-          <Logo size={36} className="rounded-xl" />
+          <Logo size={42} className="rounded-xl" />
         </div>
 
         {/* Nav items */}

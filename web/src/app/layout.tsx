@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     icon: "/icon.svg",
     apple: "/icon.svg",
   },
+  other: {
+    "facebook-domain-verification": "e7d6oOq4lm02gw7l5e8xig6knoomtl",
+  },
 };
 
 export default function RootLayout({

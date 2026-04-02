@@ -63,8 +63,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
   },
   other: {
     'facebook-domain-verification': 'e7d6oOq4lm02gw7l5e8xig6knoomtl',

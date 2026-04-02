@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,11 +39,20 @@ export const metadata: Metadata = {
     siteName: 'Izin Catat',
     title: 'Izin Catat — Catat Keuangan Lewat WhatsApp',
     description: 'Bot WhatsApp pencatat keuangan pribadi. Kirim pesan, langsung tercatat. Lihat laporan dan analisis pengeluaran dari dashboard kapan saja.',
+    images: [
+      {
+        url: '/og.png',
+        width: 1200,
+        height: 630,
+        alt: 'Izin Catat — Catat Keuangan Lewat WhatsApp',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Izin Catat — Catat Keuangan Lewat WhatsApp',
     description: 'Bot WhatsApp pencatat keuangan pribadi. Kirim pesan, langsung tercatat.',
+    images: ['/og.png'],
   },
   robots: {
     index: true,
@@ -78,6 +88,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <NextTopLoader color="#7EC843" height={3} showSpinner={false} />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

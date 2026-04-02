@@ -21,6 +21,9 @@ desktop.ini
 *.swp
 *.swo
 
+# Claude Code (local config only)
+.claude/settings.local.json
+
 # Logs
 *.log
 npm-debug.log*

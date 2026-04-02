@@ -14,15 +14,51 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Izin Catat",
-  description: "Catat keuangan pribadi lewat WhatsApp. Gratis, simpel, dan cepat.",
+  metadataBase: new URL('https://izincatat.com'),
+  title: {
+    default: 'Izin Catat — Catat Keuangan Lewat WhatsApp',
+    template: '%s | Izin Catat',
+  },
+  description: 'Bot WhatsApp pencatat keuangan pribadi. Kirim pesan, langsung tercatat. Lihat laporan, grafik, dan analisis pengeluaran dari dashboard kapan saja.',
+  keywords: [
+    'catat keuangan whatsapp',
+    'bot keuangan whatsapp',
+    'aplikasi keuangan pribadi',
+    'pencatatan keuangan otomatis',
+    'laporan keuangan harian',
+    'keuangan pasangan',
+    'catat pengeluaran',
+  ],
+  authors: [{ name: 'Izin Catat', url: 'https://izincatat.com' }],
+  creator: 'Izin Catat',
+  openGraph: {
+    type: 'website',
+    locale: 'id_ID',
+    url: 'https://izincatat.com',
+    siteName: 'Izin Catat',
+    title: 'Izin Catat — Catat Keuangan Lewat WhatsApp',
+    description: 'Bot WhatsApp pencatat keuangan pribadi. Kirim pesan, langsung tercatat. Lihat laporan dan analisis pengeluaran dari dashboard kapan saja.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Izin Catat — Catat Keuangan Lewat WhatsApp',
+    description: 'Bot WhatsApp pencatat keuangan pribadi. Kirim pesan, langsung tercatat.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: '/icon.svg',
+    apple: '/icon.svg',
   },
   other: {
-    "facebook-domain-verification": "e7d6oOq4lm02gw7l5e8xig6knoomtl",
-    "google-site-verification": "qiK0s2vwIU8rCZN6rwnlLRFOB3cihYUI5FrTKa7EX18",
+    'facebook-domain-verification': 'e7d6oOq4lm02gw7l5e8xig6knoomtl',
+    'google-site-verification': 'qiK0s2vwIU8rCZN6rwnlLRFOB3cihYUI5FrTKa7EX18',
   },
 };
 

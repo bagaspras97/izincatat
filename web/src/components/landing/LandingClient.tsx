@@ -212,7 +212,7 @@ export function LandingClient({
           {/* Mobile dropdown */}
           {mobileMenuOpen && (
             <div className="md:hidden border-t border-border-card/60 px-5 py-3 flex flex-col gap-0.5">
-              {[{ label: "Fitur", href: "#fitur" }, ...NAV_LINKS].map(({ label, href }) => (
+              {[...NAV_LINKS].map(({ label, href }) => (
                 <a
                   key={href}
                   href={href}

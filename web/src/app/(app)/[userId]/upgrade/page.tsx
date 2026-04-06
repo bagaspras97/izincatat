@@ -2,9 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { formatRupiah, formatTanggal } from '@/lib/format';
 import { Check, Crown, MessageCircle, Sparkles, Clock, X } from 'lucide-react';
-
-const WA_NUMBER = '628211933818';
-const waLink = (text: string) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+import { waLink } from '@/lib/wa';
 
 const DEFAULTS = { harga_pro: 15000, harga_couple: 29000 };
 

@@ -406,7 +406,7 @@ export default function AdminPage() {
 
         {/* Logo */}
         <div className="mb-2 hidden lg:flex items-center justify-center">
-          <Logo size={42} className="rounded-lg" />
+          <Logo size={32} className="rounded-lg" />
         </div>
 
         {/* Nav items */}
